@@ -13,10 +13,14 @@ namespace SonicWallInterface
 
         public static async Task Main(string[] args)
         {
-            Configuration = new ConfigurationBuilder()
+            
+            var configurationBuilder = new ConfigurationBuilder()
                 .SetBasePath(Environment.CurrentDirectory)
-                .AddJsonFile("appsettings.json", false, true)
-                .Build();
+                .AddJsonFile("appsettings.json", false, true);
+            if(Environment.GetEnvironmentVariable("SONIC_INT__ENVIRONMENT") != null && Environment.GetEnvironmentVariable("SONIC_INT__ENVIRONMENT").StartsWith("DEV")){
+                configurationBuilder.AddUserSecrets("9a29c872-302c-4fb3-baea-c9b01650ed6e");
+            }
+            Configuration = configurationBuilder.Build();
             await Host.CreateDefaultBuilder(args)
                 .ConfigureServices(services =>
                 {
