@@ -3,22 +3,20 @@ using Messaging.Contracts;
 using Microsoft.Azure.Amqp;
 using Microsoft.Extensions.Logging;
 using SonicWallInterface.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SonicWallInterface.Consumers
 {
     public class BlockIPsConsumer : IConsumer<BlockIPs>
     {
         private readonly ILogger<BlockIPsConsumer> _logger;
+        private readonly ISonicWallApi _sonic;
+        private readonly IThreatIntelApi _threat;
         private ISessionFactory _sessionFactory;
 
-        public BlockIPsConsumer(ILogger<BlockIPsConsumer> logger) 
+        public BlockIPsConsumer(ILogger<BlockIPsConsumer> logger, ISonicWallApi sonic)
         {
             _logger = logger;
+            _sonic = sonic;
         }
 
         public async Task Consume(ConsumeContext<BlockIPs> context)

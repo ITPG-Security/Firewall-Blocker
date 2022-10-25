@@ -17,12 +17,14 @@ namespace SonicWallInterface.Services
     {
         private readonly ILogger<SonicWallTIApi> _logger;
         private readonly IOptions<SonicWallConfig> _swCfg;
+        private readonly IThreatIntelApi _threat;
         private ReaderWriterLock _locker;
 
-        public SonicWallTIApi(ILogger<SonicWallTIApi> logger, IOptions<SonicWallConfig> swCfg)
+        public SonicWallTIApi(ILogger<SonicWallTIApi> logger, IOptions<SonicWallConfig> swCfg, IThreatIntelApi threat)
         {
             _logger = logger;
             _swCfg = swCfg;
+            _threat = threat;
             _locker = new ReaderWriterLock();
         }
 
@@ -54,15 +56,11 @@ namespace SonicWallInterface.Services
             _locker.ReleaseWriterLock();
         }
 
-        private async Task CommitChanges(HttpClient client)
+        private async Task<List<string>> GetIPBlockList(HttpClient client)
         {
-            await client.PostAsync(_swCfg.Value.FireWallEndpoint + "/config/pending", new StringContent(""));
-        }
-
-        private async Task<bool> DoesIPBlockListExist(HttpClient client)
-        {
-            var responce = await client.GetAsync(_swCfg.Value.FireWallEndpoint + "/threat/block/ip/");
-            return responce.IsSuccessStatusCode;
+            var responce = await client.GetAsync(_swCfg.Value.FireWallEndpoint + "/threat/block/ip");
+            if (!responce.IsSuccessStatusCode) return new List<string>();
+            return (await responce.Content.ReadAsStringAsync()).Split(Environment.NewLine).ToList();
         }
 
         private async Task InitiateIPBlockList(HttpClient client, List<string> ips)
@@ -75,33 +73,42 @@ namespace SonicWallInterface.Services
             }
         }
 
-        private async Task UpdateIPBlockList(HttpClient client, List<string> ips)
+        private async Task UpdateIPBlockList(HttpClient client, List<string> currentIps, List<string> ips)
         {
-            var content = new StringContent(string.Join(Environment.NewLine, ips));
-            content.Headers.Add("Content-Type", "application/text");
-            var responce = await client.PutAsync(_swCfg.Value.FireWallEndpoint + "/threat/block/ip/", content);
+            //Make lists of what IP's are needed to be added/removed.
+            var addIps = ips.Select(ip => !currentIps.Contains(ip));
+            var removeIps = currentIps.Select(ip => !ips.Contains(ip));
+            //Create content
+            var addContent = new StringContent(string.Join(Environment.NewLine, addIps));
+            var removeContent = new StringContent(string.Join(Environment.NewLine, removeIps));
+            //Add headers
+            removeContent.Headers.Add("Content-Type", "application/text");
+            addContent.Headers.Add("Content-Type", "application/text");
+            var responce = await client.PutAsync(_swCfg.Value.FireWallEndpoint + "/threat/block/ip/", addContent);
             if (!responce.IsSuccessStatusCode)
             {
                 throw new Exception($"Initiation of block list failed. Error code: \"{responce.StatusCode}\"");
             }
         }
 
-        public async Task BlockIPsAsync(List<string> ips)
+        public async Task BlockIPsAsync()
         {
-            _logger.Log(LogLevel.Information, "Sarting communication with SonicWall TI API at \"{0}\". Logging in", _swCfg.Value.FireWallEndpoint);
+            _logger.Log(LogLevel.Information, "Start to gather TI from Sentinel");
+            var getTiTask = _threat.GetCurrentTIIPs();
+            getTiTask.Start();
             var client = await Login();
-            if(!await DoesIPBlockListExist(client))
+            _logger.Log(LogLevel.Information, "Sarting communication with SonicWall TI API at \"{0}\". Logging in", _swCfg.Value.FireWallEndpoint);
+            var currentIps = await GetIPBlockList(client);
+            if(currentIps.Count <= 0)
             {
                 _logger.Log(LogLevel.Information, "BlockList does not exist on \"{0}\". Creating blocklist", _swCfg.Value.FireWallEndpoint);
-                await InitiateIPBlockList(client, ips);
+                await InitiateIPBlockList(client, await getTiTask);
             }
             else
             {
                 _logger.Log(LogLevel.Information, "BlockList exists on \"{0}\". Updating blocklist", _swCfg.Value.FireWallEndpoint);
-                await UpdateIPBlockList(client, ips);
+                await UpdateIPBlockList(client, currentIps, await getTiTask);
             }
-            _logger.Log(LogLevel.Information, "Commiting changes on \"{0}\"", _swCfg.Value.FireWallEndpoint);
-            await CommitChanges(client);
             _logger.Log(LogLevel.Information, "Compleated all tasks on \"{0}\". Logging off", _swCfg.Value.FireWallEndpoint);
             await Logout(client);
         }

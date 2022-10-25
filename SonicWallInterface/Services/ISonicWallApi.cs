@@ -8,6 +8,6 @@ namespace SonicWallInterface.Services
 {
     public interface ISonicWallApi
     {
-        Task BlockIPsAsync(List<string> ips);
+        Task BlockIPsAsync();
     }
 }
