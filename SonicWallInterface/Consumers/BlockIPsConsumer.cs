@@ -1,6 +1,5 @@
 ﻿using MassTransit;
 using Messaging.Contracts;
-using Microsoft.Azure.Amqp;
 using Microsoft.Extensions.Logging;
 using SonicWallInterface.Services;
 
@@ -20,12 +19,25 @@ namespace SonicWallInterface.Consumers
 
         public async Task Consume(ConsumeContext<BlockIPs> context)
         {
-            var payload = context.GetPayload<BlockIPs>();
-            if (payload == null){
+            if (context.Message == null){
                 _logger.Log(LogLevel.Error, "Payload not found. Message might be malformed");
                 return;
             }
-            _logger.Log(LogLevel.Information, "Digesting BlockIPs message created at {0} by: \"{1}\".", payload.DateTime, payload.CreatedBy);
+            _logger.Log(LogLevel.Information, "Digesting BlockIPs message created at {0} by: \"{1}\".", context.Message.DateTime, context.Message.CreatedBy);
+            await _sonic.BlockIPsAsync();
+        }
+    }
+    
+    public class BlockIPsConsumerDefinition : ConsumerDefinition<BlockIPsConsumer>
+    {
+        public BlockIPsConsumerDefinition()
+        {
+            EndpointName = "ti-blocker";
+            ConcurrentMessageLimit = 1;
+        }
+
+        protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator, IConsumerConfigurator<BlockIPsConsumer> consumerConfigurator)
+        {
         }
     }
 }

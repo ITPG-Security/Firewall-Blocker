@@ -6,22 +6,23 @@ namespace SonicWallInterface.Services
     {
         private readonly ILogger<SonicWallTIMockApi> _logger;
         private readonly IThreatIntelApi _threat;
-        private readonly ReaderWriterLock _locker = new ReaderWriterLock();
         private List<string> _ipAddresses;
 
-        public SonicWallTIMockApi(ILogger<SonicWallTIMockApi> logger, IThreatIntelApi threat)
+        public SonicWallTIMockApi(ILogger<SonicWallTIMockApi> logger, IThreatIntelApi threat, List<string> ips)
         {
             _logger = logger;
             _threat = threat;
-            _ipAddresses = new List<string>();
+            _ipAddresses = ips.ToList();
         }
 
         public async Task BlockIPsAsync()
         {
-            _locker.AcquireWriterLock(10);
-            var ips = await _threat.GetCurrentTIIPs();
-            _ipAddresses = ips.ToList();
-            _locker.ReleaseWriterLock();
+            _ipAddresses = (await _threat.GetCurrentTIIPs()).ToList();
+        }
+
+        public List<string> GetIps()
+        {
+            return _ipAddresses.ToList();
         }
     }
 }

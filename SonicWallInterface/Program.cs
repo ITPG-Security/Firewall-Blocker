@@ -31,7 +31,8 @@ namespace SonicWallInterface
                     services.Configure<ThreatIntelApiConfig>(context.Configuration.GetSection(nameof(ThreatIntelApiConfig)));
                     services.AddMassTransit(x =>
                     {
-                        x.AddConsumer<BlockIPsConsumer>();
+                        x.AddConsumer<BlockIPsConsumer>(typeof(BlockIPsConsumerDefinition));
+                        x.SetKebabCaseEndpointNameFormatter();
 
                         if (serviceBusConfig.IsPresent)
                         {
@@ -39,20 +40,7 @@ namespace SonicWallInterface
                             {
 
                                 cfg.Host(serviceBusConfig.ConnectionString);
-                                cfg.ReceiveEndpoint("fw-blocker", e =>
-                                {
-                                    e.UseMessageRetry(r =>
-                                    {
-                                        r.Interval(3, TimeSpan.FromMilliseconds(100));
-                                    });
-
-                                    e.ConfigureConsumer<BlockIPsConsumer>(messageContext, c => c.UseMessageRetry(r =>
-                                    {
-                                        r.Interval(3, TimeSpan.FromMilliseconds(200));
-                                        //TODO: Add ignore exceptions
-                                        //r.Ignore<SOME EXCEPTION HERE>();
-                                    }));
-                                });
+                                cfg.ConfigureEndpoints(messageContext, new KebabCaseEndpointNameFormatter("ti-blocker", false));
                             });
                         }
                         else
@@ -60,6 +48,7 @@ namespace SonicWallInterface
                             x.UsingInMemory((messageContext, cfg) =>
                             {
                                 cfg.ConcurrentMessageLimit = 100;
+                                cfg.ConfigureEndpoints(messageContext, new KebabCaseEndpointNameFormatter("ti-blocker", false));
                             });
                         }
                     });
