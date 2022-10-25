@@ -12,7 +12,7 @@ namespace SonicWallInterface.Configuration
         public string ConnectionString { get; set; }
 
         [JsonIgnore]
-        public bool IsPresent => string.IsNullOrEmpty(ConnectionString);
+        public bool IsPresent => !string.IsNullOrEmpty(ConnectionString);
 
         public override string ToString()
         {

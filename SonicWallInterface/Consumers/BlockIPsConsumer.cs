@@ -11,7 +11,6 @@ namespace SonicWallInterface.Consumers
         private readonly ILogger<BlockIPsConsumer> _logger;
         private readonly ISonicWallApi _sonic;
         private readonly IThreatIntelApi _threat;
-        private ISessionFactory _sessionFactory;
 
         public BlockIPsConsumer(ILogger<BlockIPsConsumer> logger, ISonicWallApi sonic)
         {
@@ -21,7 +20,12 @@ namespace SonicWallInterface.Consumers
 
         public async Task Consume(ConsumeContext<BlockIPs> context)
         {
-            _logger.Log(LogLevel.Information, "Digesting BlockIPs message.");
+            var payload = context.GetPayload<BlockIPs>();
+            if (payload == null){
+                _logger.Log(LogLevel.Error, "Payload not found. Message might be malformed");
+                return;
+            }
+            _logger.Log(LogLevel.Information, "Digesting BlockIPs message created at {0} by: \"{1}\".", payload.DateTime, payload.CreatedBy);
         }
     }
 }
