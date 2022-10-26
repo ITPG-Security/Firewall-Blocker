@@ -1,12 +1,14 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SonicWallInterface.Configuration;
+using SonicWallInterface.Exceptions;
 using SonicWallInterface.Helpers;
 using System;
 using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,100 +19,93 @@ namespace SonicWallInterface.Services
     {
         private readonly ILogger<SonicWallTIApi> _logger;
         private readonly IOptions<SonicWallConfig> _swCfg;
-        private readonly IThreatIntelApi _threat;
-        private ReaderWriterLock _locker;
+        private readonly HttpClientHandler _handler;
 
-        public SonicWallTIApi(ILogger<SonicWallTIApi> logger, IOptions<SonicWallConfig> swCfg, IThreatIntelApi threat)
+        public SonicWallTIApi(ILogger<SonicWallTIApi> logger, IOptions<SonicWallConfig> swCfg)
         {
             _logger = logger;
             _swCfg = swCfg;
-            _threat = threat;
-            _locker = new ReaderWriterLock();
-        }
-
-        private async Task<HttpClient> Login()
-        {
-            var ctr = 0;
-            while (_locker.IsWriterLockHeld && ctr <= 1000)
+            _handler = new HttpClientHandler();
+            _handler.ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => 
             {
-                await Task.Delay(10);
-                ctr++;
-            }
-            _locker.AcquireWriterLock(100);
-            var client = new HttpClient();
-
-            if (!_swCfg.Value.ValidateSSL)
-            {
-                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-            }
-            client.DefaultRequestHeaders.Add("Content-Type", "application/json");
-            var loginContent = new StringContent("{\"override\":true}");
-            loginContent.Headers.Add("Authorization", $"Basic {StringHelper.EncodeBase64($"{_swCfg.Value.Username}:{_swCfg.Value.Password}")}");
-            var responce = await client.PostAsync(_swCfg.Value.FireWallEndpoint + "/auth", loginContent);
-            return client;
+                return _swCfg.Value.ValidateSSL;
+            };
         }
 
-        private async Task Logout(HttpClient client)
-        {
-            await client.DeleteAsync(_swCfg.Value.FireWallEndpoint + "/auth");
-            _locker.ReleaseWriterLock();
+        private string _getAuthValue(){
+            return StringHelper.EncodeBase64(_swCfg.Value.Username + ":" + _swCfg.Value.Password);
         }
 
-        private async Task<List<string>> GetIPBlockList(HttpClient client)
+        public async Task<List<string>> GetIPBlockList()
         {
-            var responce = await client.GetAsync(_swCfg.Value.FireWallEndpoint + "/threat/block/ip");
+            var client = new HttpClient(_handler);
+            var request = new HttpRequestMessage{
+                RequestUri = new Uri(_swCfg.Value.FireWallEndpoint + "/threat/block/ip/"),
+                Method = HttpMethod.Get
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", _getAuthValue());
+            var responce = await client.SendAsync(request);
             if (!responce.IsSuccessStatusCode) return new List<string>();
             return (await responce.Content.ReadAsStringAsync()).Split(Environment.NewLine).ToList();
         }
 
-        private async Task InitiateIPBlockList(HttpClient client, List<string> ips)
+        public async Task InitiateIPBlockList(List<string> ips)
         {
-            var content = new StringContent(string.Join(Environment.NewLine, ips));
-            content.Headers.Add("Content-Type", "application/text");
-            var responce = await client.PostAsync(_swCfg.Value.FireWallEndpoint + "/threat/block/ip/", content);
+            _logger.Log(LogLevel.Information, "BlockList does not exist on \"{0}\". Creating blocklist", _swCfg.Value.FireWallEndpoint);
+            var client = new HttpClient(_handler);
+            var request = new HttpRequestMessage{
+                RequestUri = new Uri(_swCfg.Value.FireWallEndpoint + "/threat/block/ip/"),
+                Method = HttpMethod.Post,
+                Content = new StringContent(string.Join(Environment.NewLine, ips))
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", _getAuthValue());
+            var responce = await client.SendAsync(request);
+            if (responce.StatusCode == HttpStatusCode.NotFound){
+                throw new UnreachableException($"Endpoint not found at \"{_swCfg.Value.FireWallEndpoint}\". Does the firewall have a valid CFS Licence?");
+            }
             if (!responce.IsSuccessStatusCode) {
                 throw new Exception($"Initiation of block list failed. Error code: \"{responce.StatusCode}\"");
             }
         }
 
-        private async Task UpdateIPBlockList(HttpClient client, List<string> currentIps, List<string> ips)
+        public async Task AddToIPBlockList(List<string> ips)
         {
-            //Make lists of what IP's are needed to be added/removed.
-            var addIps = ips.Select(ip => !currentIps.Contains(ip));
-            var removeIps = currentIps.Select(ip => !ips.Contains(ip));
-            //Create content
-            var addContent = new StringContent(string.Join(Environment.NewLine, addIps));
-            var removeContent = new StringContent(string.Join(Environment.NewLine, removeIps));
-            //Add headers
-            removeContent.Headers.Add("Content-Type", "application/text");
-            addContent.Headers.Add("Content-Type", "application/text");
-            var responce = await client.PutAsync(_swCfg.Value.FireWallEndpoint + "/threat/block/ip/", addContent);
+            _logger.Log(LogLevel.Information, "Adding {0} ips to BlockList on \"{1}\".", ips.Count, _swCfg.Value.FireWallEndpoint);
+            var client = new HttpClient(_handler);
+            var request = new HttpRequestMessage{
+                RequestUri = new Uri(_swCfg.Value.FireWallEndpoint + "/threat/block/ip/"),
+                Method = HttpMethod.Put,
+                Content = new StringContent(string.Join(Environment.NewLine, ips))
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", _getAuthValue());
+            var responce = await client.SendAsync(request);
+            if (responce.StatusCode == HttpStatusCode.NotFound){
+                throw new UnreachableException($"Endpoint not found at \"{_swCfg.Value.FireWallEndpoint}\". Does the firewall have a valid CFS Licence?");
+            }
             if (!responce.IsSuccessStatusCode)
             {
-                throw new Exception($"Initiation of block list failed. Error code: \"{responce.StatusCode}\"");
+                throw new Exception($"Failed to remove IPs of block list. Error code: \"{responce.StatusCode}\"");
             }
         }
 
-        public async Task BlockIPsAsync()
+        public async Task RemoveFromIPBlockList(List<string> ips)
         {
-            _logger.Log(LogLevel.Information, "Start to gather TI from Sentinel");
-            var getTiTask = _threat.GetCurrentTIIPs();
-            getTiTask.Start();
-            var client = await Login();
-            _logger.Log(LogLevel.Information, "Sarting communication with SonicWall TI API at \"{0}\". Logging in", _swCfg.Value.FireWallEndpoint);
-            var currentIps = await GetIPBlockList(client);
-            if(currentIps.Count <= 0)
-            {
-                _logger.Log(LogLevel.Information, "BlockList does not exist on \"{0}\". Creating blocklist", _swCfg.Value.FireWallEndpoint);
-                await InitiateIPBlockList(client, await getTiTask);
+            _logger.Log(LogLevel.Information, "Removing {0} ips from BlockList on \"{1}\".", ips.Count, _swCfg.Value.FireWallEndpoint);
+            var client = new HttpClient(_handler);
+            var request = new HttpRequestMessage{
+                RequestUri = new Uri(_swCfg.Value.FireWallEndpoint + "/threat/block/ip/"),
+                Method = HttpMethod.Delete,
+                Content = new StringContent(string.Join(Environment.NewLine, ips))
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", _getAuthValue());
+            var responce = await client.SendAsync(request);
+            if (responce.StatusCode == HttpStatusCode.NotFound){
+                throw new UnreachableException($"Endpoint not found at \"{_swCfg.Value.FireWallEndpoint}\". Does the firewall have a valid CFS Licence?");
             }
-            else
+            if (!responce.IsSuccessStatusCode)
             {
-                _logger.Log(LogLevel.Information, "BlockList exists on \"{0}\". Updating blocklist", _swCfg.Value.FireWallEndpoint);
-                await UpdateIPBlockList(client, currentIps, await getTiTask);
+                throw new Exception($"Failed to remove IPs of block list. Error code: \"{responce.StatusCode}\"");
             }
-            _logger.Log(LogLevel.Information, "Compleated all tasks on \"{0}\". Logging off", _swCfg.Value.FireWallEndpoint);
-            await Logout(client);
         }
     }
 }

@@ -15,14 +15,31 @@ namespace SonicWallInterface.Services
             _ipAddresses = ips.ToList();
         }
 
-        public async Task BlockIPsAsync()
+        public List<string> IpAddresses => _ipAddresses;
+
+        public Task AddToIPBlockList(List<string> ips)
         {
-            _ipAddresses = (await _threat.GetCurrentTIIPs()).ToList();
+            _ipAddresses.AddRange(ips.Where(ip => !_ipAddresses.Contains(ip)));
+            return Task.CompletedTask;
         }
 
-        public List<string> GetIps()
+        public Task<List<string>> GetIPBlockList()
         {
-            return _ipAddresses.ToList();
+            return Task.Factory.StartNew<List<string>>(() => {
+                return _ipAddresses.ToList();
+            });
+        }
+
+        public Task InitiateIPBlockList(List<string> ips)
+        {
+            _ipAddresses = ips.ToList();
+            return Task.CompletedTask;
+        }
+
+        public Task RemoveFromIPBlockList(List<string> ips)
+        {
+            _ipAddresses = _ipAddresses.Where(ip => !ips.Contains(ip)).ToList();
+            return Task.CompletedTask;
         }
     }
 }
