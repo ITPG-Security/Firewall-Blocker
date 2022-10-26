@@ -16,6 +16,10 @@ namespace SonicWallInterface.Tests.Integration
         public IHost IHost {get; private set;}
         private CancellationTokenSource _sourceToken;
 
+        public void StartHost(TestConfigModel testConfig){
+            StartHost(new List<string>(), testConfig);
+        }
+
         public void StartHost(List<string> tiIps, TestConfigModel testConfig)
         {
             StartHost(new List<string>(), tiIps, testConfig);

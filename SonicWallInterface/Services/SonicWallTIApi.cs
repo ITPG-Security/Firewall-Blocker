@@ -28,7 +28,7 @@ namespace SonicWallInterface.Services
             _handler = new HttpClientHandler();
             _handler.ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => 
             {
-                return _swCfg.Value.ValidateSSL;
+                return !_swCfg.Value.ValidateSSL;
             };
         }
 
@@ -46,17 +46,21 @@ namespace SonicWallInterface.Services
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", _getAuthValue());
             var responce = await client.SendAsync(request);
             if (!responce.IsSuccessStatusCode) return new List<string>();
-            return (await responce.Content.ReadAsStringAsync()).Split(Environment.NewLine).ToList();
+            return (await responce.Content.ReadAsStringAsync()).Split("\n").Where(ip => !string.IsNullOrEmpty(ip)).ToList();
         }
 
         public async Task InitiateIPBlockList(List<string> ips)
         {
+            if(ips.Count <= 0){
+                _logger.Log(LogLevel.Information, "A POST request was made. However, an empty list was used.");
+                return;
+            }
             _logger.Log(LogLevel.Information, "BlockList does not exist on \"{0}\". Creating blocklist", _swCfg.Value.FireWallEndpoint);
             var client = new HttpClient(_handler);
             var request = new HttpRequestMessage{
                 RequestUri = new Uri(_swCfg.Value.FireWallEndpoint + "/threat/block/ip/"),
                 Method = HttpMethod.Post,
-                Content = new StringContent(string.Join(Environment.NewLine, ips))
+                Content = new StringContent(string.Join("\n", ips))
             };
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", _getAuthValue());
             var responce = await client.SendAsync(request);
@@ -70,12 +74,16 @@ namespace SonicWallInterface.Services
 
         public async Task AddToIPBlockList(List<string> ips)
         {
+            if(ips.Count <= 0){
+                _logger.Log(LogLevel.Information, "A PUT request was made. However, an empty list was used.");
+                return;
+            }
             _logger.Log(LogLevel.Information, "Adding {0} ips to BlockList on \"{1}\".", ips.Count, _swCfg.Value.FireWallEndpoint);
             var client = new HttpClient(_handler);
             var request = new HttpRequestMessage{
                 RequestUri = new Uri(_swCfg.Value.FireWallEndpoint + "/threat/block/ip/"),
                 Method = HttpMethod.Put,
-                Content = new StringContent(string.Join(Environment.NewLine, ips))
+                Content = new StringContent(string.Join("\n", ips))
             };
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", _getAuthValue());
             var responce = await client.SendAsync(request);
@@ -90,12 +98,16 @@ namespace SonicWallInterface.Services
 
         public async Task RemoveFromIPBlockList(List<string> ips)
         {
+            if(ips.Count <= 0){
+                _logger.Log(LogLevel.Information, "A DELETE request was made. However, an empty list was used.");
+                return;
+            }
             _logger.Log(LogLevel.Information, "Removing {0} ips from BlockList on \"{1}\".", ips.Count, _swCfg.Value.FireWallEndpoint);
             var client = new HttpClient(_handler);
             var request = new HttpRequestMessage{
                 RequestUri = new Uri(_swCfg.Value.FireWallEndpoint + "/threat/block/ip/"),
                 Method = HttpMethod.Delete,
-                Content = new StringContent(string.Join(Environment.NewLine, ips))
+                Content = new StringContent(string.Join("\n", ips))
             };
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", _getAuthValue());
             var responce = await client.SendAsync(request);

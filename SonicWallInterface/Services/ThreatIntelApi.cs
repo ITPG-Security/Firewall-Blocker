@@ -20,6 +20,7 @@ namespace SonicWallInterface.Services
         public ThreatIntelApi(ILogger<ThreatIntelApi> logger, IOptions<ThreatIntelApiConfig> tiCfg){
             _logger = logger;
             _tiCfg = tiCfg;
+            Setup();
         }
 
         private void Setup(){
@@ -31,14 +32,20 @@ namespace SonicWallInterface.Services
         }
 
         public async Task<List<string>> GetCurrentTIIPs(){
-            var tmp = await _graphClient.Security.TiIndicators.GetAsync(requestConfiguration => {
-                requestConfiguration.QueryParameters.Filter = $"expirationDateTime ge {DateTime.UtcNow} and " +
-                $"confidence ge {(_tiCfg.Value.MinConfidence != null ? _tiCfg.Value.MinConfidence : 50)}";
-                requestConfiguration.QueryParameters.Select = new string[]{
-                    "networkIPv4"
-                };
-            });
-            return new List<string>();
+            try{
+                var tmp = await _graphClient.Security.TiIndicators.GetAsync(requestConfiguration => {
+                    requestConfiguration.QueryParameters.Filter = $"expirationDateTime ge {DateTime.UtcNow} and " +
+                    $"confidence ge {(_tiCfg.Value.MinConfidence != null ? _tiCfg.Value.MinConfidence : 50)}";
+                    requestConfiguration.QueryParameters.Select = new string[]{
+                        "networkIPv4"
+                    };
+                });
+                return tmp.Value.Select(ti => ti.NetworkIPv4).ToList();
+            }
+            catch(Exception ex){
+                _logger.Log(LogLevel.Error, "Request failed: {0}", ex.Message);
+                throw ex;
+            }
         }
     }
 }
