@@ -36,8 +36,9 @@ namespace SonicWallInterface.Services
                     _tiCfg.Value.WorkspaceId,
                     "ThreatIntelligenceIndicator" +
                     "| where ExpirationDateTime > now() and " +
-                    "NetworkIP matches regex \"^(?:[1-2]?[0-9]?[0-9]\\\\.){3}(?:[1-2]?[0-9]?[0-9])$\" and " +
-                    "ConfidenceScore >= " + _tiCfg.Value.MinConfidence +
+                    "ConfidenceScore >= " + _tiCfg.Value.MinConfidence + " and " +
+                    "NetworkIP matches regex @\"^(?:[1-2]?[0-9]?[0-9]\\.){3}(?:[1-2]?[0-9]?[0-9])$\" and " +
+                    "not(NetworkIP matches regex @\"^(?:192\\.168\\.|10\\.|172\\.(?:1[6-9]|2[0-9]|3[0-1])\\.)\") " +
                     "| summarize by NetworkIP",
                     QueryTimeRange.All
                 );
