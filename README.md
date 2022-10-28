@@ -24,6 +24,7 @@ W.I.P.
         "ClientId": "CLIENT_ID",
         "TenantId": "TENANT_ID",
         "ClientSecret": "CLIENT_SECRET",
+        "WorkspaceId": "WORKSPACE_ID",
         "MinConfidence": 25
     },
     "ServiceBusConfig":
