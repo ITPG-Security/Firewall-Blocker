@@ -47,9 +47,20 @@ namespace SonicWallInterface.Tests.Integration
                     services.Configure<ServiceBusConfig>(context.Configuration.GetSection(nameof(ServiceBusConfig)));
                 }
                 if(!testConfig.UseMockTIApi){
-                    if(!threatIntelApiConfig.IsPresent) throw new Exception("No active Configuration found for TI API");
-                    services.Configure<ThreatIntelApiConfig>(context.Configuration.GetSection(nameof(ThreatIntelApiConfig)));
-                    services.AddSingleton<IThreatIntelApi, ThreatIntelApi>();
+                    if(threatIntelApiConfig.IsPresent && string.IsNullOrEmpty(threatIntelApiConfig.WorkspaceId))
+                    {
+                        services.Configure<ThreatIntelApiConfig>(context.Configuration.GetSection(nameof(ThreatIntelApiConfig)));
+                        services.AddSingleton<IThreatIntelApi, ThreatIntelApi>();
+                    }
+                    else if(threatIntelApiConfig.IsPresent)
+                    {
+                        services.Configure<ThreatIntelApiConfig>(context.Configuration.GetSection(nameof(ThreatIntelApiConfig)));
+                        services.AddSingleton<IThreatIntelApi, ThreatIntelLogAnalyticsApi>();
+                    }
+                    else
+                    {
+                        throw new Exception("No active Configuration found for TI API");
+                    }
                 }
                 else{
                     services.AddSingleton<ThreatIntelMockApi>(x => new ThreatIntelMockApi(x.GetRequiredService<ILogger<ThreatIntelMockApi>>(), tiIps));

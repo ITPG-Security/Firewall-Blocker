@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using SonicWallInterface.Configuration;
 using SonicWallInterface.Consumers;
+using SonicWallInterface.Services;
 
 namespace SonicWallInterface
 {
@@ -25,10 +26,35 @@ namespace SonicWallInterface
                 .ConfigureServices((context, services) =>
                 {
                     context.Configuration = config;
-                    var serviceBusConfig = context.Configuration.GetSection(nameof(ServiceBusConfig)).Get<ServiceBusConfig>();
                     services.Configure<ServiceBusConfig>(context.Configuration.GetSection(nameof(ServiceBusConfig)));
                     services.Configure<SonicWallConfig>(context.Configuration.GetSection(nameof(SonicWallConfig)));
                     services.Configure<ThreatIntelApiConfig>(context.Configuration.GetSection(nameof(ThreatIntelApiConfig)));
+                    
+                    if(context.Configuration.GetSection(nameof(SonicWallConfig)).Get<SonicWallConfig>().IsPresent)
+                    {
+                        services.AddSingleton<ISonicWallApi, SonicWallTIApi>();
+                    }
+                    else 
+                    {
+                        throw new Exception("Missing configuration: SonicWallConfig");
+                    }
+                    var tiConfig = context.Configuration.GetSection(nameof(ThreatIntelApiConfig)).Get<ThreatIntelApiConfig>();
+                    if(tiConfig.IsPresent && string.IsNullOrEmpty(tiConfig.WorkspaceId))
+                    {
+                        services.AddSingleton<IThreatIntelApi, ThreatIntelApi>();
+                    }
+                    else if(tiConfig.IsPresent)
+                    {
+                        services.AddSingleton<IThreatIntelApi, ThreatIntelLogAnalyticsApi>();
+                    }
+                    else 
+                    {
+                        throw new Exception("Missing configuration: ThreatIntelApiConfig");
+                    }
+                    var serviceBusConfig = context.Configuration.GetSection(nameof(ServiceBusConfig)).Get<ServiceBusConfig>();
+                    if(!serviceBusConfig.IsPresent){
+                        throw new Exception("Missing Messaging configuration");
+                    }
                     services.AddMassTransit(x =>
                     {
                         x.AddConsumer<BlockIPsConsumer>(typeof(BlockIPsConsumerDefinition));
@@ -43,14 +69,7 @@ namespace SonicWallInterface
                                 cfg.ConfigureEndpoints(messageContext, new KebabCaseEndpointNameFormatter("ti-blocker", false));
                             });
                         }
-                        else
-                        {
-                            x.UsingInMemory((messageContext, cfg) =>
-                            {
-                                cfg.ConcurrentMessageLimit = 100;
-                                cfg.ConfigureEndpoints(messageContext, new KebabCaseEndpointNameFormatter("ti-blocker", false));
-                            });
-                        }
+                        //Future add rabbitMQ config
                     });
                 })
                 .UseSerilog()

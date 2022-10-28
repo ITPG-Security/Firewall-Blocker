@@ -28,7 +28,7 @@ namespace SonicWallInterface.Tests
             Task.Delay(200).Wait();
             var sonicwallMock = (SonicWallTIMockApi?) IHost.Services.GetService(typeof(SonicWallTIMockApi));
             var ips = sonicwallMock.IpAddresses;
-            Assert.True(ips.All(ip => tiIps.Contains(ip)) && ips.Count == tiIps.Count);
+            Assert.True(ips.All(ip => tiIps.Contains(ip)) && ips.Count == tiIps.Count, $"TI is not the same is SonicWall. TI count:{tiIps.Count} | Sonic count: {ips.Count}");
         }
 
         [Fact]
@@ -57,7 +57,7 @@ namespace SonicWallInterface.Tests
             worker.SendMessage().Wait();
             Task.Delay(200).Wait();
             ips = sonicwallMock.IpAddresses;
-            Assert.True(ips.All(ip => tiIps.Contains(ip)) && ips.Count == tiIps.Count);
+            Assert.True(ips.All(ip => tiIps.Contains(ip)) && ips.Count == tiIps.Count, $"TI is not the same is SonicWall. TI count:{tiIps.Count} | Sonic count: {ips.Count}");
         }
         
         [Fact]
@@ -87,10 +87,10 @@ namespace SonicWallInterface.Tests
             }
             var ips = request.Result;
             Assert.NotNull(ips);
-            Assert.True(ips.All(ip => tiIps.Contains(ip)) && ips.Count == tiIps.Count);
+            Assert.True(ips.All(ip => tiIps.Contains(ip)) && ips.Count == tiIps.Count, $"TI is not the same is SonicWall. TI count:{tiIps.Count} | Sonic count: {ips.Count}");
         }
 
-        //[Fact]
+        [Fact]
         public void SB_M__TI_R__SO_M_TIIntegrationTest(){
             var testConfig = new TestConfigModel{
                 UseMockServiceBus = true,
@@ -106,7 +106,7 @@ namespace SonicWallInterface.Tests
             var tiTask = tiApi.GetCurrentTIIPs();
             workerTask.Wait();
             var ctr = 0;
-            while(!tiTask.IsCompleted || ctr >= 1000){
+            while(!tiTask.IsCompleted || ctr >= 2000){
                 Task.Delay(10).Wait();
                 ctr+=10;
             }
@@ -115,7 +115,41 @@ namespace SonicWallInterface.Tests
             var sonicwallMock = (SonicWallTIMockApi?) IHost.Services.GetService(typeof(SonicWallTIMockApi));
             Assert.NotNull(sonicwallMock);
             var ips = sonicwallMock.IpAddresses;
-            Assert.True(ips.All(ip => tiIps.Contains(ip)) && ips.Count == tiIps.Count);
+            Assert.True(ips.All(ip => tiIps.Contains(ip)) && ips.Count == tiIps.Count, $"TI is not the same is SonicWall. TI count:{tiIps.Count} | Sonic count: {ips.Count}");
+        }
+
+        
+        [Fact]
+        public void SB_M__TI_R__SO_R_SonicWallIntegrationTest(){
+            var testConfig = new TestConfigModel{
+                UseMockServiceBus = true,
+                UseMockSonicWall = false,
+                UseMockTIApi = false
+            };
+            this.StartHost(testConfig);
+            var worker = (TestWorker?) IHost.Services.GetService(typeof(TestWorker));
+            Assert.NotNull(worker);
+            worker.SendMessage().Wait();
+            var tiApi = (IThreatIntelApi?) IHost.Services.GetService(typeof(IThreatIntelApi));
+            Assert.NotNull(tiApi);
+            var tiTask = tiApi.GetCurrentTIIPs();
+            Task.Delay(200).Wait();
+            var ctr = 0;
+            while(!tiTask.IsCompleted && ctr <= 2000){
+                Task.Delay(10).Wait();
+                ctr+=10;
+            }
+            var sonicwall = (ISonicWallApi?) IHost.Services.GetService(typeof(ISonicWallApi));
+            var sonicTask = sonicwall.GetIPBlockList();
+            ctr = 0;
+            while(!sonicTask.IsCompleted && ctr <= 1000){
+                Task.Delay(10).Wait();
+                ctr+=10;
+            }
+            var tiIps = tiTask.Result;
+            var ips = sonicTask.Result;
+            Assert.NotNull(ips);
+            Assert.True(ips.All(ip => tiIps.Contains(ip)) && ips.Count == tiIps.Count, $"TI is not the same is SonicWall. TI count:{tiIps.Count} | Sonic count: {ips.Count}");
         }
 
 
