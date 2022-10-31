@@ -3,7 +3,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Azure.Monitor.Query;
 using SonicWallInterface.Configuration;
+using SonicWallInterface.Helpers;
 using Azure.Monitor.Query.Models;
+using Moq;
+using Azure;
 
 namespace SonicWallInterface.Services
 {
@@ -22,12 +25,48 @@ namespace SonicWallInterface.Services
             Setup();
         }
 
+        public ThreatIntelLogAnalyticsApi(ILogger<ThreatIntelLogAnalyticsApi> logger, IOptions<ThreatIntelApiConfig> tiCfg, List<string> ips)
+        {
+            _logger = logger;
+            _tiCfg = tiCfg;
+            Setup(ips);
+        }
+
         private void Setup(){
             var options = new TokenCredentialOptions
             {
                 AuthorityHost = AzureAuthorityHosts.AzurePublicCloud
             };
             _logClient = new LogsQueryClient(new ClientSecretCredential(_tiCfg.Value.TenantId, _tiCfg.Value.ClientId, _tiCfg.Value.ClientSecret, options));
+        }
+
+        private Response<LogsQueryResult> _getMockResult(List<string> ips){
+            var collums = new List<LogsTableColumn>
+            {
+                MonitorQueryModelFactory.LogsTableColumn("NetworkIP", LogsColumnType.String)
+            };
+            var rows = new List<LogsTableRow>();
+            foreach (var ip in ips)
+            {
+                rows.Add(MonitorQueryModelFactory.LogsTableRow(collums, new List<string>{
+                    ip
+                }));
+            }
+            var logResponceMock = new Mock<Response<LogsQueryResult>>();
+            logResponceMock.Setup(l => l.Value.Status).Returns(LogsQueryResultStatus.Success);
+            logResponceMock.Setup(l => l.Value.Table).Returns(MonitorQueryModelFactory.LogsTable("ThreatIntelligenceIndicator", collums, rows));
+            var responceMock = new Mock<Response>();
+            responceMock.SetupGet(r => r.Status).Returns(200);
+            return Response.FromValue<LogsQueryResult>(logResponceMock.Object, responceMock.Object);
+        }
+
+        private void Setup(List<string> ips)
+        {
+            var logMock = new Mock<LogsQueryClient>();
+            logMock.Setup(l => l.QueryWorkspaceAsync("Test WP", "TestQ", QueryTimeRange.All, null, default(CancellationToken))).Returns(Task.Factory.StartNew<Response<LogsQueryResult>>(() => {
+                return _getMockResult(ips);
+            }));
+            _logClient = logMock.Object;
         }
 
         public async Task<List<string>> GetCurrentTIIPs(){

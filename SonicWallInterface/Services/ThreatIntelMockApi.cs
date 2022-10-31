@@ -6,7 +6,7 @@ using SonicWallInterface.Configuration;
 
 namespace SonicWallInterface.Services
 {
-    public class ThreatIntelMockApi : IThreatIntelApi
+    /*public class ThreatIntelMockApi : IThreatIntelApi
     {
         private List<string> _ipAddresses;
         private readonly ILogger<ThreatIntelMockApi> _logger;
@@ -32,5 +32,5 @@ namespace SonicWallInterface.Services
             _ipAddresses = ips.ToList();
             return Task.CompletedTask;
         }
-    }
+    }*/
 }

@@ -8,6 +8,7 @@ using SonicWallInterface.Consumers;
 using SonicWallInterface.Services;
 using Microsoft.Extensions.Logging;
 using SonicWallInterface.Tests.Models;
+using Microsoft.Extensions.Options;
 
 namespace SonicWallInterface.Tests.Integration
 {
@@ -63,8 +64,21 @@ namespace SonicWallInterface.Tests.Integration
                     }
                 }
                 else{
-                    services.AddSingleton<ThreatIntelMockApi>(x => new ThreatIntelMockApi(x.GetRequiredService<ILogger<ThreatIntelMockApi>>(), tiIps));
-                    services.AddSingleton<IThreatIntelApi>(x => x.GetService<ThreatIntelMockApi>());
+                    if(threatIntelApiConfig.IsPresent){
+                        services.Configure<ThreatIntelApiConfig>(context.Configuration.GetSection(nameof(ThreatIntelApiConfig)));
+                    }
+                    else {
+                        context.Configuration.Bind(nameof(ThreatIntelApiConfig), new ThreatIntelApiConfig{
+                            ClientId = "ClientID",
+                            ClientSecret = "SECRET",
+                            TenantId = "TennantID",
+                            WorkspaceId = "WorkspaceID",
+                            MinConfidence = 25
+                        });
+                        services.Configure<ThreatIntelApiConfig>(context.Configuration.GetSection(nameof(ThreatIntelApiConfig)));
+                    }
+                    services.AddSingleton<ThreatIntelLogAnalyticsApi>(x => new ThreatIntelLogAnalyticsApi(x.GetRequiredService<ILogger<ThreatIntelLogAnalyticsApi>>(), x.GetRequiredService<IOptions<ThreatIntelApiConfig>>(), tiIps));
+                    services.AddSingleton<IThreatIntelApi>(x => x.GetRequiredService<ThreatIntelLogAnalyticsApi>());
                 }
                 if(!testConfig.UseMockSonicWall){
                     if(!sonicWallConfig.IsPresent) throw new Exception("No active Configuration found for Sonic Wall");
@@ -73,7 +87,7 @@ namespace SonicWallInterface.Tests.Integration
                 }
                 else{
                     services.AddSingleton<SonicWallTIMockApi>(x => new SonicWallTIMockApi(x.GetRequiredService<ILogger<SonicWallTIMockApi>>(), x.GetRequiredService<IThreatIntelApi>(), bannedIps));
-                    services.AddSingleton<ISonicWallApi>(x => x.GetService<SonicWallTIMockApi>());
+                    services.AddSingleton<ISonicWallApi>(x => x.GetRequiredService<SonicWallTIMockApi>());
                 }
                 services.AddMassTransit(x =>
                 {
