@@ -4,6 +4,7 @@
 .vs
 .vscode
 .editorconfig
+Builds/*
 
 # User-specific files
 *.suo

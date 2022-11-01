@@ -13,11 +13,10 @@ namespace SonicWallInterface
     {
         public static async Task Main(string[] args)
         {
-            var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
-            Console.Out.WriteLine($"Current Path: {Environment.CurrentDirectory} | Is Dev? {(env != null ? env : "null")}");
             var configurationBuilder = new ConfigurationBuilder()
                 .SetBasePath(Environment.CurrentDirectory)
                 .AddJsonFile("appsettings.json", false, true);
+            var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
             if(env != null && env.ToUpper().StartsWith("DEV")){
                 configurationBuilder.AddUserSecrets("9a29c872-302c-4fb3-baea-c9b01650ed6e");
             }
