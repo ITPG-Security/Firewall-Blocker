@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Azure.Monitor.Query;
 using SonicWallInterface.Configuration;
-using SonicWallInterface.Helpers;
 using Azure.Monitor.Query.Models;
 using Moq;
 using Azure;
@@ -52,20 +51,22 @@ namespace SonicWallInterface.Services
                     ip
                 }));
             }
-            var logResponceMock = new Mock<Response<LogsQueryResult>>();
-            logResponceMock.Setup(l => l.Value.Status).Returns(LogsQueryResultStatus.Success);
-            logResponceMock.Setup(l => l.Value.Table).Returns(MonitorQueryModelFactory.LogsTable("ThreatIntelligenceIndicator", collums, rows));
+            //Make null JSON objects sdk/monitor/Azure.Monitor.Query/src/Models/MonitorQueryModelFactory.cs https://github.com/Azure/azure-sdk-for-net/pull/26296
+            var emptyObject = new {};
+            var queryResponse = MonitorQueryModelFactory.LogsQueryResult(
+                new List<LogsTable>{MonitorQueryModelFactory.LogsTable("ThreatIntelligenceIndicator", collums, rows)}, 
+                new BinaryData(Newtonsoft.Json.JsonConvert.SerializeObject(emptyObject).ToArray().Select(m => ((byte)m)).ToArray()), 
+                new BinaryData(Newtonsoft.Json.JsonConvert.SerializeObject(emptyObject).ToArray().Select(m => ((byte)m)).ToArray()),
+                new BinaryData(Newtonsoft.Json.JsonConvert.SerializeObject(emptyObject).ToArray().Select(m => ((byte)m)).ToArray()));
             var responceMock = new Mock<Response>();
             responceMock.SetupGet(r => r.Status).Returns(200);
-            return Response.FromValue<LogsQueryResult>(logResponceMock.Object, responceMock.Object);
+            return Response.FromValue<LogsQueryResult>(queryResponse, responceMock.Object);
         }
 
         private void Setup(List<string> ips)
         {
             var logMock = new Mock<LogsQueryClient>();
-            logMock.Setup(l => l.QueryWorkspaceAsync("Test WP", "TestQ", QueryTimeRange.All, null, default(CancellationToken))).Returns(Task.Factory.StartNew<Response<LogsQueryResult>>(() => {
-                return _getMockResult(ips);
-            }));
+            logMock.Setup(l => l.QueryWorkspaceAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<QueryTimeRange>(), It.IsAny<LogsQueryOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(_getMockResult(ips));
             _logClient = logMock.Object;
         }
 

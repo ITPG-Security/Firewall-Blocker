@@ -135,7 +135,7 @@ namespace SonicWallInterface.Tests
             var worker = (TestWorker?) IHost.Services.GetService(typeof(TestWorker));
             Assert.NotNull(worker);
             worker.SendMessage().Wait();
-            Task.Delay(60000).Wait();
+            Task.Delay(10000).Wait();
             var sonicwallMock = (SonicWallTIMockApi?) IHost.Services.GetService(typeof(SonicWallTIMockApi));
             var ips = sonicwallMock.IpAddresses;
             Assert.True(ips.All(ip => tiIps.Contains(ip)) && ips.Count == tiIps.Count, $"TI is not the same is SonicWall. TI count:{tiIps.Count} | Sonic count: {ips.Count}");
