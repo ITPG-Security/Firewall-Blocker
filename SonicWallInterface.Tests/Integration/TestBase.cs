@@ -2,7 +2,6 @@ using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Serilog;
 using SonicWallInterface.Configuration;
 using SonicWallInterface.Consumers;
 using SonicWallInterface.Services;
@@ -95,9 +94,9 @@ namespace SonicWallInterface.Tests.Integration
                 }
                 services.AddMassTransit(x =>
                 {
+                    x.AddConsumer<BlockIPsConsumer>(typeof(BlockIPsConsumerDefinition));
                     if(!testConfig.UseMockServiceBus)
                     {
-                        x.AddConsumer<BlockIPsConsumer>(typeof(BlockIPsConsumerDefinition));
                         x.UsingAzureServiceBus((messageContext, cfg) =>
                         {
                             cfg.Host(serviceBusConfig.ConnectionString);
@@ -111,7 +110,6 @@ namespace SonicWallInterface.Tests.Integration
                     }
                     else
                     {
-                        x.AddConsumer<BlockIPsConsumer>(typeof(BlockIPsConsumerDefinition));
                         x.SetKebabCaseEndpointNameFormatter();
                         x.UsingInMemory((messageContext, cfg) =>
                         {
@@ -127,7 +125,6 @@ namespace SonicWallInterface.Tests.Integration
                 });
                 services.AddSingleton<TestWorker>();
             })
-            .UseSerilog()
             .Build();
             Task.Run(async () => {
                 await IHost.RunAsync(_sourceToken.Token);

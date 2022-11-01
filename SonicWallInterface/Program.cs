@@ -2,10 +2,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Serilog;
 using SonicWallInterface.Configuration;
 using SonicWallInterface.Consumers;
 using SonicWallInterface.Services;
+using Messaging.Contracts;
 
 namespace SonicWallInterface
 {
@@ -13,12 +13,12 @@ namespace SonicWallInterface
     {
         public static async Task Main(string[] args)
         {
-            
+            var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            Console.Out.WriteLine($"Current Path: {Environment.CurrentDirectory} | Is Dev? {(env != null ? env : "null")}");
             var configurationBuilder = new ConfigurationBuilder()
                 .SetBasePath(Environment.CurrentDirectory)
                 .AddJsonFile("appsettings.json", false, true);
-            var env = Environment.GetEnvironmentVariable("SONIC_INT__ENVIRONMENT");
-            if(env != null && env.StartsWith("DEV")){
+            if(env != null && env.ToUpper().StartsWith("DEV")){
                 configurationBuilder.AddUserSecrets("9a29c872-302c-4fb3-baea-c9b01650ed6e");
             }
             var config = configurationBuilder.Build();
@@ -52,27 +52,32 @@ namespace SonicWallInterface
                         throw new Exception("Missing configuration: ThreatIntelApiConfig");
                     }
                     var serviceBusConfig = context.Configuration.GetSection(nameof(ServiceBusConfig)).Get<ServiceBusConfig>();
+                    var appConfig = context.Configuration.GetSection(nameof(AppConfig)).Get<AppConfig>();
                     if(!serviceBusConfig.IsPresent){
                         throw new Exception("Missing Messaging configuration");
                     }
                     services.AddMassTransit(x =>
                     {
                         x.AddConsumer<BlockIPsConsumer>(typeof(BlockIPsConsumerDefinition));
-                        x.SetKebabCaseEndpointNameFormatter();
-
                         if (serviceBusConfig.IsPresent)
                         {
                             x.UsingAzureServiceBus((messageContext, cfg) =>
                             {
-
                                 cfg.Host(serviceBusConfig.ConnectionString);
-                                cfg.ConfigureEndpoints(messageContext, new KebabCaseEndpointNameFormatter("ti-blocker", false));
+                                cfg.SubscriptionEndpoint(appConfig.SiteName, "ti-blocker", e => {
+                                    e.ConfigureConsumer<BlockIPsConsumer>(messageContext);
+                                });
+                                cfg.Message<BlockIPs>(m => {
+                                    m.SetEntityName("ti-blocker");
+                                });
                             });
+                        }
+                        else{
+                            throw new Exception("No valid Messaging configured!");
                         }
                         //Future add rabbitMQ config
                     });
                 })
-                .UseSerilog()
                 .Build()
                 .RunAsync();
         }
