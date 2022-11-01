@@ -36,21 +36,21 @@ jobs:
       with:
         type: 'zip'
         filename: 'windows-v${{steps.get_version.outputs.info}}.zip'
-        path: './Builds/SonicWallInterface/Windows/*'
+        directory: './Builds/SonicWallInterface/Windows'
     - name: Tar linux
       id: tar_windows
       uses: thedoctor0/zip-release@main
       with:
         type: 'tar'
         filename: 'linux-v${{steps.get_version.outputs.info}}.tar.gz'
-        path: './Builds/SonicWallInterface/Linux/*'
+        directory: './Builds/SonicWallInterface/Linux'
     - name: release
       uses: actions/create-release@v1
       id: create_release
       with:
         draft: false
         prerelease: false
-        release_name: Release v${{ steps.get_version.outputs.info }}
+        release_name: Release v${{ steps.get_version.outputs.info }} - ${{ github.ref }}
         tag_name: v${{ steps.get_version.outputs.info }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -61,7 +61,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./windows-v${{steps.get_version.outputs.info}}.zip
+        asset_path: ./Builds/SonicWallInterface/Windows/windows-v${{steps.get_version.outputs.info}}.zip
         asset_name: windows-v${{steps.get_version.outputs.info}}.zip
         asset_content_type: application/zip
     - name: Upload content linux
@@ -71,7 +71,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./linux-v${{steps.get_version.outputs.info}}.tar.gz
+        asset_path: ./Builds/SonicWallInterface/Linux/linux-v${{steps.get_version.outputs.info}}.tar.gz
         asset_name: linux-v${{steps.get_version.outputs.info}}.tar.gz
         asset_content_type: application/x-tar
 
