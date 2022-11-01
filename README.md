@@ -7,11 +7,55 @@ The program triggers by listening to a toppic on a message provider. (Currently 
 
 ## Instalation
 
-W.I.P.
+Currently the app is bundled with the runtime environment and does not need any installation. However if you want to install it as a daemon follow the instructions in the next sections.
+
+## Usage
+
+### Windows
+- Grab the latest windows release and place it in a folder together with the `appsettings.json`.
+- Configure the appsettings to your liking.
+- Run the `SonicWallInterface.exe`
+
+#### Setup daemon
+- TODO How to guide Windows Service
+
+### Linux
+- Grab the latest windows release and place it in a folder together with the `appsettings.json`.
+- Configure the appsettings to your liking.
+- Make the `SonicWallInterface` file executable with `chmod +x SonicWallInterface`.
+- Run the executable.
+
+#### Setup daemon
+- After downloading the file create a user to run the service
+- Finaly create a the `sonic_int.service` file inside `/etc/systemd/system/`
+- Use the following template as input for your `sonic_int.service` file.
+```
+[Unit]
+Description=ingest_threat_intel
+After=network.target
+
+[Service]
+User=USER_ID
+Group=GROUP_ID
+ExecStart=/Location/Of/Executable/SonicWallInterface
+Type=simple
+
+[Install]
+WantedBy=default.target
+```
 
 ## Configuration
 ```
 {
+    "Logging": 
+    {
+        "LogLevel": 
+        {
+            "Default": "Information",
+            "Microsoft": "Warning",
+            "Microsoft.Hosting.Lifetime": "Information"
+        }
+    },
     "SonicWallConfig":
     {
         "FireWallEndpoint": "https://127.0.0.1",
@@ -27,6 +71,9 @@ W.I.P.
         "WorkspaceId": "WORKSPACE_ID",
         "MinConfidence": 25
     },
+    "AppConfig": {
+        "SiteName": "TestSite"
+    },
     "ServiceBusConfig":
     {
         "ConnectionString": "CONNECTION_STRING"
@@ -38,4 +85,5 @@ W.I.P.
 Future development options:
 - RabbitMQ
 - Other TI Sources
-- Non TI API (probably not)
+- Docker image
+- Install script
