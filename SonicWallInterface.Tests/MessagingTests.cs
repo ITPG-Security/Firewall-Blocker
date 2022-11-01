@@ -118,6 +118,28 @@ namespace SonicWallInterface.Tests
             Assert.True(ips.All(ip => tiIps.Contains(ip)) && ips.Count == tiIps.Count, $"TI is not the same is SonicWall. TI count:{tiIps.Count} | Sonic count: {ips.Count}");
         }
 
+        [Fact]
+        public void SB_R__TI_M__SO_M_EmptyBlockListTest(){
+            var tiIps = new List<string>{
+                "199.36.158.100",
+                "31.11.32.79",
+                "50.192.28.29",
+                "67.225.140.4"
+            };
+            var testConfig = new TestConfigModel{
+                UseMockServiceBus = false,
+                UseMockSonicWall = true,
+                UseMockTIApi = true
+            };
+            this.StartHost(tiIps, testConfig);
+            var worker = (TestWorker?) IHost.Services.GetService(typeof(TestWorker));
+            Assert.NotNull(worker);
+            worker.SendMessage().Wait();
+            Task.Delay(10000).Wait();
+            var sonicwallMock = (SonicWallTIMockApi?) IHost.Services.GetService(typeof(SonicWallTIMockApi));
+            var ips = sonicwallMock.IpAddresses;
+            Assert.True(ips.All(ip => tiIps.Contains(ip)) && ips.Count == tiIps.Count, $"TI is not the same is SonicWall. TI count:{tiIps.Count} | Sonic count: {ips.Count}");
+        }
         
         [Fact]
         public void SB_M__TI_R__SO_R_SonicWallIntegrationTest(){

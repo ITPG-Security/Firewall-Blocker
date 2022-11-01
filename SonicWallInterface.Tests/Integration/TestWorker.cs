@@ -13,8 +13,7 @@ namespace SonicWallInterface.Tests.Integration
         }
         
         public async Task SendMessage(){
-            var sendEndpoint = await _bus.GetSendEndpoint(new Uri("queue:ti-blocker"));
-            await sendEndpoint.Send<BlockIPs>(new{ DateTime = DateTime.UtcNow, CreatedBy="Tester"});
+            await _bus.Publish<BlockIPs>(new{ DateTime = DateTime.UtcNow, CreatedBy="Tester"});
         }
     }
 }

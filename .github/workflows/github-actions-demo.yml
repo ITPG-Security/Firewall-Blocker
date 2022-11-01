@@ -1,0 +1,77 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Publish new release
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  publish:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Publish Windows
+      run: dotnet publish SonicWallInterface --no-restore -p:DebugType=None -p:DebugSymbols=false -p:PublishSingleFile=true --self-contained true -c Production -o ./Builds/SonicWallInterface/Windows --os win
+    - name: Publish Linux
+      run: dotnet publish SonicWallInterface --no-restore -p:DebugType=None -p:DebugSymbols=false -p:PublishSingleFile=true --self-contained true -c Production -o ./Builds/SonicWallInterface/Linux --os linux
+    - name: Get version
+      id: get_version
+      uses: mavrosxristoforos/get-xml-info@1.0
+      with: 
+        xml-file: './SonicWallInterface/SonicWallInterface.csproj'
+        xpath: '//Project//PropertyGroup//Version'
+    - name: Zip windows
+      id: zip_windows
+      uses: thedoctor0/zip-release@main
+      with:
+        type: 'zip'
+        filename: 'windows-v${{steps.get_version.outputs.info}}.zip'
+        path: './Builds/SonicWallInterface/Windows/*'
+    - name: Tar linux
+      id: tar_windows
+      uses: thedoctor0/zip-release@main
+      with:
+        type: 'tar'
+        filename: 'linux-v${{steps.get_version.outputs.info}}.tar.gz'
+        path: './Builds/SonicWallInterface/Linux/*'
+    - name: release
+      uses: actions/create-release@v1
+      id: create_release
+      with:
+        draft: false
+        prerelease: false
+        release_name: Release v${{ steps.get_version.outputs.info }}
+        tag_name: v${{ steps.get_version.outputs.info }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Upload content windows
+      id: upload_content_windows
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./windows-v${{steps.get_version.outputs.info}}.zip
+        asset_name: windows-v${{steps.get_version.outputs.info}}.zip
+        asset_content_type: application/zip
+    - name: Upload content linux
+      id: upload_content_linux
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./linux-v${{steps.get_version.outputs.info}}.tar.gz
+        asset_name: linux-v${{steps.get_version.outputs.info}}.tar.gz
+        asset_content_type: application/x-tar
+

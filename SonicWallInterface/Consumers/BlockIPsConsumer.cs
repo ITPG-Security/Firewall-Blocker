@@ -31,7 +31,8 @@ namespace SonicWallInterface.Consumers
             var currentIps = await _sonic.GetIPBlockList();
             if(currentIps.Count <= 0)
             {
-                await _sonic.InitiateIPBlockList(await getTiTask);
+                var tiIps = await getTiTask;
+                await _sonic.InitiateIPBlockList(tiIps);
             }
             else
             {
@@ -49,7 +50,6 @@ namespace SonicWallInterface.Consumers
     {
         public BlockIPsConsumerDefinition()
         {
-            EndpointName = "ti-blocker";
             ConcurrentMessageLimit = 1;
         }
 
