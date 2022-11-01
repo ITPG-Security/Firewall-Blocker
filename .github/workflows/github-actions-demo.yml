@@ -37,6 +37,7 @@ jobs:
         type: 'zip'
         filename: 'windows-v${{steps.get_version.outputs.info}}.zip'
         directory: './Builds/SonicWallInterface/Windows'
+        path: './*'
     - name: Tar linux
       id: tar_windows
       uses: thedoctor0/zip-release@main
@@ -44,6 +45,8 @@ jobs:
         type: 'tar'
         filename: 'linux-v${{steps.get_version.outputs.info}}.tar.gz'
         directory: './Builds/SonicWallInterface/Linux'
+        path: './*'
+        
     - name: release
       uses: actions/create-release@v1
       id: create_release
