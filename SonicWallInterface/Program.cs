@@ -2,11 +2,14 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Configuration;
 using SonicWallInterface.Configuration;
 using SonicWallInterface.Consumers;
 using SonicWallInterface.Services;
 using Messaging.Contracts;
 using System.Reflection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.EventLog;
 
 namespace SonicWallInterface
 {
@@ -32,10 +35,21 @@ namespace SonicWallInterface
                 configurationBuilder.AddUserSecrets("9a29c872-302c-4fb3-baea-c9b01650ed6e");
             }
             var config = configurationBuilder.Build();
-            await Host.CreateDefaultBuilder(args)
-            .ConfigureServices((context, services) =>
+            
+            var host = Host.CreateDefaultBuilder(args);
+            if(System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows)){
+                host = host.UseWindowsService(options => {
+                    options.ServiceName = "Sonic Wall Interface";
+                });
+            }
+            await host.ConfigureServices((context, services) =>
             {
                 context.Configuration = config;
+                
+                if(System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows)){
+                    LoggerProviderOptions.RegisterProviderOptions<EventLogSettings, EventLogLoggerProvider>(services);
+                }
+                
                 services.Configure<ServiceBusConfig>(context.Configuration.GetSection(nameof(ServiceBusConfig)));
                 services.Configure<SonicWallConfig>(context.Configuration.GetSection(nameof(SonicWallConfig)));
                 services.Configure<ThreatIntelApiConfig>(context.Configuration.GetSection(nameof(ThreatIntelApiConfig)));
@@ -87,6 +101,10 @@ namespace SonicWallInterface
                     }
                     //Future add rabbitMQ config
                 });
+            })
+            .ConfigureLogging((context, logging)=>
+            {
+                logging.AddConfiguration(context.Configuration.GetSection("Logging"));
             })
             .Build()
             .RunAsync();
