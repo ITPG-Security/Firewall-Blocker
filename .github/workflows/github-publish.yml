@@ -107,7 +107,7 @@ jobs:
         asset_name: linux-v${{steps.get_version.outputs.info}}.tar.gz
         asset_content_type: application/x-tar
     - name: Upload content linux
-      id: upload_content_linux
+      id: upload_content_linux_lite
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
