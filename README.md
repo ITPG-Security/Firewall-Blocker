@@ -68,7 +68,7 @@ WantedBy=default.target
         "ClientId": "CLIENT_ID",
         "TenantId": "TENANT_ID",
         "ClientSecret": "CLIENT_SECRET",
-        "WorkspaceId": "WORKSPACE_ID",
+        "WorkspaceId": "WORKSPACE_ID", //Only needed if you use the non graph API
         "MinConfidence": 25
     },
     "AppConfig": {
@@ -82,8 +82,15 @@ WantedBy=default.target
 ```
 
 ## Notes
-Future development options:
+A few things you should know. 
+- At the moment collecting the TI from the Graph API does not work.
+- It is not reccomended to set the MinConfidence at 0. (A lot of IPs will be given.)
+
+## Future
 - RabbitMQ
 - Other TI Sources
 - Docker image
 - Install script
+- Fix Graph API
+- Support Exclusions
+- Support multiple SonicWalls

@@ -9,14 +9,13 @@ namespace SonicWallInterface.Consumers
     public class BlockIPsConsumer : IConsumer<BlockIPs>
     {
         private readonly ILogger<BlockIPsConsumer> _logger;
-        private readonly ISonicWallApi _sonic;
+        private readonly ITIHandler _tiHandler;
         private readonly IThreatIntelApi _threat;
 
-        public BlockIPsConsumer(ILogger<BlockIPsConsumer> logger, ISonicWallApi sonic, IThreatIntelApi threat)
+        public BlockIPsConsumer(ILogger<BlockIPsConsumer> logger, ITIHandler tiHandler)
         {
             _logger = logger;
-            _sonic = sonic;
-            _threat = threat;
+            _tiHandler = tiHandler;
         }
 
         public async Task Consume(ConsumeContext<BlockIPs> context)
@@ -26,23 +25,7 @@ namespace SonicWallInterface.Consumers
                 return;
             }
             _logger.Log(LogLevel.Information, "Digesting BlockIPs message created at {0} by: \"{1}\".", context.Message.DateTime, context.Message.CreatedBy);
-            _logger.Log(LogLevel.Information, "Start to gather TI from Sentinel");
-            var getTiTask = _threat.GetCurrentTIIPs();
-            var currentIps = await _sonic.GetIPBlockList();
-            if(currentIps.Count <= 0)
-            {
-                var tiIps = await getTiTask;
-                await _sonic.InitiateIPBlockList(tiIps);
-            }
-            else
-            {
-                _logger.Log(LogLevel.Information, "BlockList exists. Updating block list.");
-                var tiIps = await getTiTask;
-                var removeIps = currentIps.Where(ip => !tiIps.Contains(ip)).ToList();
-                var addIps = tiIps.Where(ip => !currentIps.Contains(ip)).ToList();
-                await _sonic.RemoveFromIPBlockList(removeIps);
-                await _sonic.AddToIPBlockList(addIps);
-            }
+            await _tiHandler.HandleTI();
         }
     }
     
