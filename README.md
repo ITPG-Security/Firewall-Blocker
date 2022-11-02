@@ -7,7 +7,7 @@ The program triggers by listening to a toppic on a message provider. (Currently 
 
 ## Instalation
 
-Currently the app is bundled with the runtime environment and does not need any installation. However if you want to install it as a daemon follow the instructions in the next sections.
+Currently the app is bundled with the runtime environment and does not need any installation. However if you want to install it as a service/daemon follow the instructions in the next sections.
 
 ## Usage
 
@@ -16,8 +16,9 @@ Currently the app is bundled with the runtime environment and does not need any 
 - Configure the appsettings to your liking.
 - Run the `SonicWallInterface.exe`
 
-#### Setup daemon
-- TODO How to guide Windows Service
+#### Setup service
+- Use the `sc.exe` (Windows Service Control Manager) to create a windows service: `sc.exe create "Sonic Wall Interface Service" binpath="C:\Path\To\SonicWallInterface.exe"`
+- More info can be found [here](https://learn.microsoft.com/en-us/dotnet/core/extensions/windows-service#create-the-windows-service).
 
 ### Linux
 - Grab the latest windows release and place it in a folder together with the `appsettings.json`.

@@ -75,6 +75,8 @@ namespace SonicWallInterface
                 {
                     throw new Exception("Missing configuration: ThreatIntelApiConfig");
                 }
+                services.AddSingleton<ITIHandler, TIHandler>();
+                
                 var serviceBusConfig = context.Configuration.GetSection(nameof(ServiceBusConfig)).Get<ServiceBusConfig>();
                 var appConfig = context.Configuration.GetSection(nameof(AppConfig)).Get<AppConfig>();
                 if(!serviceBusConfig.IsPresent){
