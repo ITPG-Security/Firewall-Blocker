@@ -21,9 +21,13 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Publish Windows
-      run: dotnet publish SonicWallInterface --no-restore -p:DebugType=None -p:DebugSymbols=false -p:PublishSingleFile=true --self-contained true -c Production -o ./Builds/SonicWallInterface/Windows --os win
+      run: dotnet publish SonicWallInterface --no-restore -p:DebugType=None -p:DebugSymbols=false -p:PublishSingleFile=true --self-contained true -c Release -o ./Builds/SonicWallInterface/Windows --os win
+    - name: Publish Windows lite
+      run: dotnet publish SonicWallInterface --no-restore -p:DebugType=None -p:DebugSymbols=false -p:PublishSingleFile=true --self-contained false -c Release -o ./Builds/SonicWallInterface/Windows_lite --os win
     - name: Publish Linux
-      run: dotnet publish SonicWallInterface --no-restore -p:DebugType=None -p:DebugSymbols=false -p:PublishSingleFile=true --self-contained true -c Production -o ./Builds/SonicWallInterface/Linux --os linux
+      run: dotnet publish SonicWallInterface --no-restore -p:DebugType=None -p:DebugSymbols=false -p:PublishSingleFile=true --self-contained true -c Release -o ./Builds/SonicWallInterface/Linux --os linux
+    - name: Publish Linux lite
+      run: dotnet publish SonicWallInterface --no-restore -p:DebugType=None -p:DebugSymbols=false -p:PublishSingleFile=true --self-contained false -c Release -o ./Builds/SonicWallInterface/Linux_lite --os linux
     - name: Get version
       id: get_version
       uses: mavrosxristoforos/get-xml-info@1.0
@@ -38,15 +42,30 @@ jobs:
         filename: 'windows-v${{steps.get_version.outputs.info}}.zip'
         directory: './Builds/SonicWallInterface/Windows'
         path: './*'
+    - name: Zip windows lite
+      id: zip_windows_lite
+      uses: thedoctor0/zip-release@main
+      with:
+        type: 'zip'
+        filename: 'windows-lite-v${{steps.get_version.outputs.info}}.zip'
+        directory: './Builds/SonicWallInterface/Windows_lite'
+        path: './*'
     - name: Tar linux
-      id: tar_windows
+      id: tar_linux
       uses: thedoctor0/zip-release@main
       with:
         type: 'tar'
         filename: 'linux-v${{steps.get_version.outputs.info}}.tar.gz'
         directory: './Builds/SonicWallInterface/Linux'
         path: './*'
-        
+    - name: Tar linux lite
+      id: tar_linux_lite
+      uses: thedoctor0/zip-release@main
+      with:
+        type: 'tar'
+        filename: 'linux-lite-v${{steps.get_version.outputs.info}}.tar.gz'
+        directory: './Builds/SonicWallInterface/Linux_lite'
+        path: './*'        
     - name: release
       uses: actions/create-release@v1
       id: create_release
@@ -67,6 +86,16 @@ jobs:
         asset_path: ./Builds/SonicWallInterface/Windows/windows-v${{steps.get_version.outputs.info}}.zip
         asset_name: windows-v${{steps.get_version.outputs.info}}.zip
         asset_content_type: application/zip
+    - name: Upload content windows lite
+      id: upload_content_windows_lite
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./Builds/SonicWallInterface/Windows_lite/windows-lite-v${{steps.get_version.outputs.info}}.zip
+        asset_name: windows-lite-v${{steps.get_version.outputs.info}}.zip
+        asset_content_type: application/zip
     - name: Upload content linux
       id: upload_content_linux
       uses: actions/upload-release-asset@v1
@@ -76,5 +105,15 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./Builds/SonicWallInterface/Linux/linux-v${{steps.get_version.outputs.info}}.tar.gz
         asset_name: linux-v${{steps.get_version.outputs.info}}.tar.gz
+        asset_content_type: application/x-tar
+    - name: Upload content linux
+      id: upload_content_linux
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./Builds/SonicWallInterface/Linux_lite/linux-lite-v${{steps.get_version.outputs.info}}.tar.gz
+        asset_name: linux-lite-v${{steps.get_version.outputs.info}}.tar.gz
         asset_content_type: application/x-tar
 
