@@ -14,9 +14,6 @@ namespace SonicWallInterface.Services
         private readonly ILogger<ThreatIntelLogAnalyticsApi> _logger;
         private readonly IOptions<ThreatIntelApiConfig> _tiCfg;
         private LogsQueryClient _logClient;
-        private readonly List<string> resources = new List<string>{
-            "https://graph.microsoft.com/.default"
-        };
 
         public ThreatIntelLogAnalyticsApi(ILogger<ThreatIntelLogAnalyticsApi> logger, IOptions<ThreatIntelApiConfig> tiCfg){
             _logger = logger;

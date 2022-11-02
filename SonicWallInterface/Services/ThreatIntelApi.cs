@@ -18,6 +18,7 @@ namespace SonicWallInterface.Services
         };
 
         public ThreatIntelApi(ILogger<ThreatIntelApi> logger, IOptions<ThreatIntelApiConfig> tiCfg){
+            throw new NotImplementedException("MS Graph is currently not supported.");
             _logger = logger;
             _tiCfg = tiCfg;
             Setup();
