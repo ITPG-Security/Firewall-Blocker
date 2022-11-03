@@ -26,7 +26,8 @@ namespace SonicWallInterface
         }
 
         private static async Task Run(string[] args)
-        {            
+        {
+            var appName = "Sonic Wall interface";
             var host = Host.CreateDefaultBuilder(args);
             host.ConfigureHostConfiguration((cfg) => {
                 cfg.AddJsonFile("appsettings.json", false, true);
@@ -37,9 +38,20 @@ namespace SonicWallInterface
             });
             if(System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows)){
                 host = host.UseWindowsService(options => {
-                    options.ServiceName = "Sonic Wall Interface";
+                    options.ServiceName = appName;
                 });
+                
             }
+            host.ConfigureLogging((context, logging) => {
+                logging.ClearProviders();
+                logging.AddConfiguration(context.Configuration.GetSection("Logging"));
+                logging.AddConsole();
+                if(System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows)){
+                    logging.AddEventLog(cfg => {
+                        cfg.SourceName = appName;
+                    });
+                }
+            });
             await host.ConfigureServices((context, services) =>
             {
                 if(System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows)){
@@ -99,10 +111,6 @@ namespace SonicWallInterface
                     }
                     //Future add rabbitMQ config
                 });
-            })
-            .ConfigureLogging((context, logging)=>
-            {
-                logging.AddConfiguration(context.Configuration.GetSection("Logging"));
             })
             .Build()
             .RunAsync();
