@@ -17,7 +17,7 @@ Currently the app is bundled with the runtime environment and does not need any 
 - Run the `SonicWallInterface.exe`
 
 #### Setup service
-- Use the `sc.exe` (Windows Service Control Manager) to create a windows service: `sc.exe create "Sonic Wall Interface Service" binpath="C:\Path\To\SonicWallInterface.exe"`
+- Use the `sc.exe` (Windows Service Control Manager) to create a windows service: `sc.exe create "Sonic Wall Interface" binpath="C:\Path\To\SonicWallInterface.exe --contentRoot C:\Path\To\appsettings.json"`
 - More info can be found [here](https://learn.microsoft.com/en-us/dotnet/core/extensions/windows-service#create-the-windows-service).
 
 ### Linux

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Graph.Beta;
 using SonicWallInterface.Configuration;
 using Microsoft.Graph.Beta.Security.TiIndicators;
+using SonicWallInterface.Helpers;
 
 namespace SonicWallInterface.Services
 {
@@ -44,7 +45,7 @@ namespace SonicWallInterface.Services
                 return tmp.Value.Select(ti => ti.NetworkIPv4).ToList();
             }
             catch(Exception ex){
-                _logger.Log(LogLevel.Error, "Request failed: {0}", ex.Message);
+                _logger.Log(LogLevel.Error, Events.Error, "Request failed: {0}", ex.Message);
                 throw ex;
             }
         }

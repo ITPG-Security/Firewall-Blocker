@@ -2,6 +2,7 @@
 using Messaging.Contracts;
 using Microsoft.Extensions.Logging;
 using SonicWallInterface.Exceptions;
+using SonicWallInterface.Helpers;
 using SonicWallInterface.Services;
 
 namespace SonicWallInterface.Consumers
@@ -21,11 +22,17 @@ namespace SonicWallInterface.Consumers
         public async Task Consume(ConsumeContext<BlockIPs> context)
         {
             if (context.Message == null){
-                _logger.Log(LogLevel.Error, "Payload not found. Message might be malformed");
+                _logger.Log(LogLevel.Error, Events.Error, "Payload not found. Message might be malformed");
                 return;
             }
-            _logger.Log(LogLevel.Information, "Digesting BlockIPs message created at {0} by: \"{1}\".", context.Message.DateTime, context.Message.CreatedBy);
-            await _tiHandler.HandleTI();
+            _logger.Log(LogLevel.Information, Events.Read, "Digesting BlockIPs message created at {0} by: \"{1}\".", context.Message.DateTime, context.Message.CreatedBy);
+            try{
+                await _tiHandler.HandleTI();
+            }
+            catch(Exception e){
+                _logger.Log(LogLevel.Error, Events.Error, "An error occured during the handling of the message. \"{0}\"", e.Message);
+                throw e;
+            }
         }
     }
     
