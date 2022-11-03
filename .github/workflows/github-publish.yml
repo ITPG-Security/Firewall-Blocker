@@ -6,6 +6,9 @@ name: Publish new release
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - Messaging/**
+      - SonicWallInterface/**
 
 jobs:
   publish:
