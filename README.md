@@ -1,4 +1,5 @@
 # Sonicwall-Interface
+![Validate build](https://github.com/ITPG-Security/Sonicwall-Interface/actions/workflows/github-test-build.yml/badge.svg?branch=main)
 
 ## About
 This program is meant to automate configuration of a SonicWall firewall via the [SonicOS TI API](https://www.sonicwall.com/support/knowledge-base/how-do-i-setup-and-use-the-threat-api-feature-on-my-firewall/171120113244716/).
