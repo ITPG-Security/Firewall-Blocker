@@ -26,17 +26,15 @@ namespace SonicWallInterface
         }
 
         private static async Task Run(string[] args)
-        {
-            var configurationBuilder = new ConfigurationBuilder()
-                .SetBasePath(Environment.CurrentDirectory)
-                .AddJsonFile("appsettings.json", false, true);
-            var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
-            if(env != null && env.ToUpper().StartsWith("DEV")){
-                configurationBuilder.AddUserSecrets("9a29c872-302c-4fb3-baea-c9b01650ed6e");
-            }
-            var config = configurationBuilder.Build();
-            
+        {            
             var host = Host.CreateDefaultBuilder(args);
+            host.ConfigureHostConfiguration((cfg) => {
+                cfg.AddJsonFile("appsettings.json", false, true);
+                var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+                if(env != null && env.ToUpper().StartsWith("DEV")){
+                    //configurationBuilder.AddUserSecrets("9a29c872-302c-4fb3-baea-c9b01650ed6e");
+                }
+            });
             if(System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows)){
                 host = host.UseWindowsService(options => {
                     options.ServiceName = "Sonic Wall Interface";
@@ -44,8 +42,6 @@ namespace SonicWallInterface
             }
             await host.ConfigureServices((context, services) =>
             {
-                context.Configuration = config;
-                
                 if(System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows)){
                     LoggerProviderOptions.RegisterProviderOptions<EventLogSettings, EventLogLoggerProvider>(services);
                 }
