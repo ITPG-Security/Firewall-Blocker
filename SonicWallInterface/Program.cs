@@ -32,7 +32,7 @@ namespace SonicWallInterface
                 cfg.AddJsonFile("appsettings.json", false, true);
                 var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
                 if(env != null && env.ToUpper().StartsWith("DEV")){
-                    //configurationBuilder.AddUserSecrets("9a29c872-302c-4fb3-baea-c9b01650ed6e");
+                    cfg.AddUserSecrets("9a29c872-302c-4fb3-baea-c9b01650ed6e");
                 }
             });
             if(System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows)){
