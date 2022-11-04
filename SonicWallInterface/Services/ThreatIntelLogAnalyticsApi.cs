@@ -96,15 +96,9 @@ namespace SonicWallInterface.Services
 
         public async Task<List<string>> GetCurrentTIIPs(){
             string query = (_tiCfg.Value.ExclusionListAlias == null || _tiCfg.Value.IPCollumName == null) ? _getTiQuery() : _getTiQueryWithExclusion();
-
             var response = await _logClient.QueryWorkspaceAsync(
                 _tiCfg.Value.WorkspaceId,
-                "ThreatIntelligenceIndicator" +
-                "| where ExpirationDateTime > now() and " +
-                "ConfidenceScore >= " + _tiCfg.Value.MinConfidence + " and " +
-                "NetworkIP matches regex @\"^(?:[1-2]?[0-9]?[0-9]\\.){3}(?:[1-2]?[0-9]?[0-9])$\" and " +
-                "not(NetworkIP matches regex @\"^(?:192\\.168\\.|10\\.|172\\.(?:1[6-9]|2[0-9]|3[0-1])\\.)\") " +
-                "| summarize by NetworkIP",
+                query,
                 QueryTimeRange.All
             );
             if(response == null) return new List<string>();
