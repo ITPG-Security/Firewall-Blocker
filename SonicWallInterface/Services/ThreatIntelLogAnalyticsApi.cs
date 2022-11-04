@@ -81,10 +81,10 @@ namespace SonicWallInterface.Services
 
         private string _getTiQueryWithExclusion()
         {
-            if(_tiCfg.Value.ExclusionListAlias == null || _tiCfg.Value.IPCollumName == null) throw new NullReferenceException("Invalid TI configuration found.");
+            if(_tiCfg.Value.ExclusionListAlias == null || _tiCfg.Value.IPv4CollumName == null) throw new NullReferenceException("Invalid TI configuration found.");
             return 
                 "let exclusions = _GetWatchlist(\"" + _tiCfg.Value.ExclusionListAlias + "\")" +
-                "| project " + _tiCfg.Value.IPCollumName + ";" +
+                "| project " + _tiCfg.Value.IPv4CollumName + ";" +
                 "ThreatIntelligenceIndicator" +
                 "| where ExpirationDateTime > now() and " +
                 "ConfidenceScore >= " + _tiCfg.Value.MinConfidence + " and " +
@@ -95,7 +95,7 @@ namespace SonicWallInterface.Services
         }
 
         public async Task<List<string>> GetCurrentTIIPs(){
-            string query = (_tiCfg.Value.ExclusionListAlias == null || _tiCfg.Value.IPCollumName == null) ? _getTiQuery() : _getTiQueryWithExclusion();
+            string query = (_tiCfg.Value.ExclusionListAlias == null || _tiCfg.Value.IPv4CollumName == null) ? _getTiQuery() : _getTiQueryWithExclusion();
             var response = await _logClient.QueryWorkspaceAsync(
                 _tiCfg.Value.WorkspaceId,
                 query,
