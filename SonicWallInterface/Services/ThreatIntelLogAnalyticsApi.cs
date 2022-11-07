@@ -68,15 +68,37 @@ namespace SonicWallInterface.Services
             _logClient = logMock.Object;
         }
 
-        public async Task<List<string>> GetCurrentTIIPs(){
-            var response = await _logClient.QueryWorkspaceAsync(
-                _tiCfg.Value.WorkspaceId,
+        private string _getTiQuery()
+        {
+            return 
                 "ThreatIntelligenceIndicator" +
                 "| where ExpirationDateTime > now() and " +
                 "ConfidenceScore >= " + _tiCfg.Value.MinConfidence + " and " +
                 "NetworkIP matches regex @\"^(?:[1-2]?[0-9]?[0-9]\\.){3}(?:[1-2]?[0-9]?[0-9])$\" and " +
                 "not(NetworkIP matches regex @\"^(?:192\\.168\\.|10\\.|172\\.(?:1[6-9]|2[0-9]|3[0-1])\\.)\") " +
-                "| summarize by NetworkIP",
+                "| summarize by NetworkIP";
+        }
+
+        private string _getTiQueryWithExclusion()
+        {
+            if(string.IsNullOrEmpty(_tiCfg.Value.ExclusionListAlias) || string.IsNullOrEmpty(_tiCfg.Value.IPv4CollumName)) throw new NullReferenceException("Invalid TI configuration found.");
+            return 
+                "let exclusions = _GetWatchlist(\"" + _tiCfg.Value.ExclusionListAlias + "\")" +
+                "| project " + _tiCfg.Value.IPv4CollumName + ";" +
+                "ThreatIntelligenceIndicator" +
+                "| where ExpirationDateTime > now() and " +
+                "ConfidenceScore >= " + _tiCfg.Value.MinConfidence + " and " +
+                "NetworkIP !in~ (exclusions) and " +
+                "NetworkIP matches regex @\"^(?:[1-2]?[0-9]?[0-9]\\.){3}(?:[1-2]?[0-9]?[0-9])$\" and " +
+                "not(NetworkIP matches regex @\"^(?:192\\.168\\.|10\\.|172\\.(?:1[6-9]|2[0-9]|3[0-1])\\.)\") " +
+                "| summarize by NetworkIP";
+        }
+
+        public async Task<List<string>> GetCurrentTIIPs(){
+            string query = (string.IsNullOrEmpty(_tiCfg.Value.ExclusionListAlias) || string.IsNullOrEmpty(_tiCfg.Value.IPv4CollumName)) ? _getTiQuery() : _getTiQueryWithExclusion();
+            var response = await _logClient.QueryWorkspaceAsync(
+                _tiCfg.Value.WorkspaceId,
+                query,
                 QueryTimeRange.All
             );
             if(response == null) return new List<string>();

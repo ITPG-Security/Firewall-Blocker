@@ -71,7 +71,9 @@ WantedBy=default.target
         "TenantId": "TENANT_ID",
         "ClientSecret": "CLIENT_SECRET",
         "WorkspaceId": "WORKSPACE_ID", //Only needed if you use the non graph API
-        "MinConfidence": 25
+        "MinConfidence": 25,
+        "ExclusionListAlias": "WATCH_LIST_ALIAS", //Optional
+        "IPv4CollumName": "IPv4_COLLUM_NAME" //Optional
     },
     "AppConfig": {
         "SiteName": "TestSite"

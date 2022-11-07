@@ -6,6 +6,9 @@ name: Validate build
 on:
   pull_request:
     branches: [ "main", "development" ]
+    paths:
+      - Messaging/**
+      - SonicWallInterface/**
 
 jobs:
   test:
