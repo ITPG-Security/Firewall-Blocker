@@ -84,6 +84,8 @@ WantedBy=default.target
     }
 }
 ```
+### Sonicwall configuration
+To see the confiugration for the sonicwall you can look at this link: [SonicOS TI API](https://www.sonicwall.com/support/knowledge-base/how-do-i-setup-and-use-the-threat-api-feature-on-my-firewall/171120113244716/)
 
 ## Notes
 A few things you should know. 
