@@ -10,6 +10,7 @@ using Messaging.Contracts;
 using System.Reflection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.EventLog;
+using Microsoft.Extensions.Hosting.Systemd;
 
 namespace SonicWallInterface
 {
@@ -41,6 +42,10 @@ namespace SonicWallInterface
                     options.ServiceName = appName;
                 });
                 
+            }
+            else if(System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux))
+            {
+                host = host.UseSystemd();
             }
             host.ConfigureLogging((context, logging) => {
                 logging.ClearProviders();
@@ -100,6 +105,12 @@ namespace SonicWallInterface
                             cfg.Host(serviceBusConfig.ConnectionString);
                             cfg.SubscriptionEndpoint(appConfig.SiteName, "ti-blocker", e => {
                                 e.ConfigureConsumer<BlockIPsConsumer>(messageContext);
+                                e.UseCircuitBreaker(cb => {
+                                    cb.TrackingPeriod = TimeSpan.FromMinutes(10);
+                                    cb.TripThreshold = 2;
+                                    cb.ActiveThreshold = 10;
+                                    cb.ResetInterval = TimeSpan.FromMinutes(15);
+                                });
                             });
                             cfg.Message<BlockIPs>(m => {
                                 m.SetEntityName("ti-blocker");

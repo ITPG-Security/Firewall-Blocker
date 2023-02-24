@@ -40,10 +40,10 @@ After=network.target
 User=USER_ID
 Group=GROUP_ID
 ExecStart=/Location/Of/Executable/SonicWallInterface
-Type=simple
+Type=notify
 
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target
 ```
 
 ## Configuration
