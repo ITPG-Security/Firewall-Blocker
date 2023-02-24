@@ -10,6 +10,7 @@ using Messaging.Contracts;
 using System.Reflection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.EventLog;
+using Microsoft.Extensions.Hosting.Systemd;
 
 namespace SonicWallInterface
 {
@@ -41,6 +42,10 @@ namespace SonicWallInterface
                     options.ServiceName = appName;
                 });
                 
+            }
+            else if(System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux))
+            {
+                host = host.UseSystemd();
             }
             host.ConfigureLogging((context, logging) => {
                 logging.ClearProviders();
