@@ -10,7 +10,6 @@ using Messaging.Contracts;
 using System.Reflection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.EventLog;
-using Microsoft.Extensions.Hosting.Systemd;
 
 namespace SonicWallInterface
 {
