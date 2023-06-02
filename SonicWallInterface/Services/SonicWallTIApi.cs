@@ -169,6 +169,7 @@ namespace SonicWallInterface.Services
             else
             {
                 client = new HttpClient(_handler);
+                client.Timeout = TimeSpan.FromSeconds(10);
             }
             var request = _getIPBlockListRequest();
             var responce = await client.SendAsync(request);
@@ -192,6 +193,7 @@ namespace SonicWallInterface.Services
             else
             {
                 client = new HttpClient(_handler);
+                client.Timeout = TimeSpan.FromMinutes(1);
             }
             var request = _postIPBlockListRequest(ips);
             var responce = await client.SendAsync(request);
@@ -219,6 +221,7 @@ namespace SonicWallInterface.Services
             else
             {
                 client = new HttpClient(_handler);
+                client.Timeout = TimeSpan.FromMinutes(1);
             }
             var request = _putIPBlockListRequest(ips);
             var responce = await client.SendAsync(request);
@@ -247,6 +250,7 @@ namespace SonicWallInterface.Services
             else
             {
                 client = new HttpClient(_handler);
+                client.Timeout = TimeSpan.FromMinutes(2);
             }
             var request = _deleteIPBlockListRequest(ips);
             var responce = await client.SendAsync(request);
