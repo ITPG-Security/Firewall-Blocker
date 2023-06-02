@@ -110,6 +110,7 @@ namespace SonicWallInterface
                                     cb.ActiveThreshold = 10;
                                     cb.ResetInterval = TimeSpan.FromMinutes(15);
                                 });
+                                e.LockDuration = TimeSpan.FromMinutes(5);
                             });
                             cfg.Message<BlockIPs>(m => {
                                 m.SetEntityName("ti-blocker");

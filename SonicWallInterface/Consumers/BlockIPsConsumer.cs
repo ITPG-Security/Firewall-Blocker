@@ -46,8 +46,9 @@ namespace SonicWallInterface.Consumers
         protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator, IConsumerConfigurator<BlockIPsConsumer> consumerConfigurator)
         {
             consumerConfigurator.UseMessageRetry(r => {
-                r.Interval(2, TimeSpan.FromMilliseconds(200));
+                r.Interval(2, TimeSpan.FromSeconds(10));
                 r.Ignore<UnreachableException>();
+                r.Ignore<HttpRequestException>();
             });
         }
     }
