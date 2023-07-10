@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SonicWallInterface.Services
 {
-    public interface ISonicWallApi
+    public interface IFireWallApi
     {
         Task<List<string>> GetIPBlockList();
         Task InitiateIPBlockList(List<string> ips);

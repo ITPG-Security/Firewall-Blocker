@@ -25,7 +25,8 @@ namespace SonicWallInterface.Tests
                 "67.225.140.4"
             };
             var sonicwallLogger = _logFactory.CreateLogger<SonicWallTIApi>();
-            var sonicwallMock = (ISonicWallApi) new SonicWallTIApi(sonicwallLogger, Options.Create<SonicWallConfig>(new SonicWallConfig{
+            var httpLogger = _logFactory.CreateLogger<HttpIPListApi>();
+            var sonicwallMock = (IFireWallApi) new SonicWallTIApi(sonicwallLogger, Options.Create<SonicWallConfig>(new SonicWallConfig{
                 FireWallEndpoint = "https://127.0.0.1",
                 Username = "admin",
                 Password = "password",
@@ -40,7 +41,7 @@ namespace SonicWallInterface.Tests
                 MinConfidence = 25
             }), tiIps);
             var tiHandlerLogger = _logFactory.CreateLogger<TIHandler>();
-            var handler = (ITIHandler) new TIHandler(tiHandlerLogger, sonicwallMock, tiMock);
+            var handler = (ITIHandler) new TIHandler(tiHandlerLogger, sonicwallMock, tiMock, new HttpIPListApi(httpLogger));
             await handler.HandleTI();
             var ips = await sonicwallMock.GetIPBlockList();
             Assert.True(ips.All(ip => tiIps.Contains(ip)) && ips.Count == tiIps.Count, $"TI is not the same is SonicWall. TI count:{tiIps.Count} | Sonic count: {ips.Count}");
@@ -59,7 +60,8 @@ namespace SonicWallInterface.Tests
                 "67.225.140.4"
             };
             var sonicwallLogger = _logFactory.CreateLogger<SonicWallTIApi>();
-            var sonicwallMock = (ISonicWallApi) new SonicWallTIApi(sonicwallLogger, Options.Create<SonicWallConfig>(new SonicWallConfig{
+            var httpLogger = _logFactory.CreateLogger<HttpIPListApi>();
+            var sonicwallMock = (IFireWallApi) new SonicWallTIApi(sonicwallLogger, Options.Create<SonicWallConfig>(new SonicWallConfig{
                 FireWallEndpoint = "https://127.0.0.1",
                 Username = "admin",
                 Password = "password",
@@ -74,7 +76,7 @@ namespace SonicWallInterface.Tests
                 MinConfidence = 25
             }), tiIps);
             var tiHandlerLogger = _logFactory.CreateLogger<TIHandler>();
-            var handler = (ITIHandler) new TIHandler(tiHandlerLogger, sonicwallMock, tiMock);
+            var handler = (ITIHandler) new TIHandler(tiHandlerLogger, sonicwallMock, tiMock, new HttpIPListApi(httpLogger, oldIps));
             await handler.HandleTI();
             var ips = await sonicwallMock.GetIPBlockList();
             Assert.True(ips.All(ip => tiIps.Contains(ip)) && ips.Count == tiIps.Count, $"TI is not the same is SonicWall. TI count:{tiIps.Count} | Sonic count: {ips.Count}");
