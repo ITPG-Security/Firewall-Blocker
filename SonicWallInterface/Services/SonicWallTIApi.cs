@@ -10,7 +10,7 @@ using Moq;
 
 namespace SonicWallInterface.Services
 {
-    public class SonicWallTIApi : ISonicWallApi
+    public class SonicWallTIApi : IFireWallApi
     {
         private readonly ILogger<SonicWallTIApi> _logger;
         private readonly IOptions<SonicWallConfig> _swCfg;
