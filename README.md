@@ -56,13 +56,23 @@ WantedBy=multi-user.target
             "Default": "Information",
             "Microsoft": "Warning",
             "Microsoft.Hosting.Lifetime": "Information"
+        },
+        //Only needed if running on Windows
+        "EventLog": {
+            "SourceName": "Sonic Wall Interface",
+            "LogName": "Application",
+            "LogLevel": {
+                "Default": "Information",
+                "Microsoft": "Information",
+                "Microsoft.Hosting.Lifetime": "Information"
+            }
         }
     },
     "SonicWallConfig":
     {
-        "FireWallEndpoint": "https://127.0.0.1",
-        "Username": "admin",
-        "Password": "password",
+        "FireWallEndpoint": "https://firewall:8443",
+        "Username": "USERNAME",
+        "Password": "PASSWORD",
         "ValidateSSL": true
     },
     "ThreatIntelApiConfig":
@@ -70,10 +80,10 @@ WantedBy=multi-user.target
         "ClientId": "CLIENT_ID",
         "TenantId": "TENANT_ID",
         "ClientSecret": "CLIENT_SECRET",
-        "WorkspaceId": "WORKSPACE_ID", //Only needed if you use the non graph API
+        "WorkspaceId": "WORKSPACE_ID",
         "MinConfidence": 25,
-        "ExclusionListAlias": "WATCH_LIST_ALIAS", //Optional
-        "IPv4CollumName": "IPv4_COLLUM_NAME" //Optional
+        "ExclusionListAlias": "ALIAS",
+        "IPv4CollumName": "COLUMN_NAME"
     },
     "AppConfig": {
         "SiteName": "TestSite"
@@ -81,11 +91,33 @@ WantedBy=multi-user.target
     "ServiceBusConfig":
     {
         "ConnectionString": "CONNECTION_STRING"
+    },
+    "AllowedHosts": "*",
+    "Kestrel": {
+        "Endpoints": {
+            "Http":{
+                "Url": "http://0.0.0.0:80"
+            },
+            "HttpsDefaultCert":{
+                "Url": "https://0.0.0.0:443"
+            }
+        },
+        "Certificates": {
+            "Default": {
+                "Path": "cert.pem",
+                "KeyPath": "key.pem"
+            }
+        }
     }
 }
 ```
-### Sonicwall configuration
+### Sonicwall configuration [DEPRECATED]
+<b>WARNING: This feature has become deprecated as it seems like it is no longer being supported.</b>
 To see the confiugration for the sonicwall you can look at this link: [SonicOS TI API](https://www.sonicwall.com/support/knowledge-base/how-do-i-setup-and-use-the-threat-api-feature-on-my-firewall/171120113244716/)
+
+### Kestrel
+Kestrel is a basic HTTP server used in ASP.NET. You can change the given configuration to limit it to a specific interface or add custom Certificates. Full configuration documentation can be found [here](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel/endpoints?view=aspnetcore-7.0). To access the list of IP addresses you can go to the interface & Port specified in the URL configuration.
+
 
 ## Notes
 A few things you should know. 
@@ -98,5 +130,5 @@ A few things you should know.
 - Docker image
 - Install script
 - Fix Graph API
-- Support Exclusions
 - Support multiple SonicWalls
+- Support other Firewalls
