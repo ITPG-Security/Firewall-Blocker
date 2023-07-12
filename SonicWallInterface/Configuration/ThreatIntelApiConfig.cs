@@ -16,6 +16,7 @@ namespace SonicWallInterface.Configuration
         public int? MinConfidence {get;set;}
         public string? ExclusionListAlias {get;set;}
         public string? IPv4CollumName {get;set;}
+        public int? MaxCount {get;set;}
         [JsonIgnore]
         public bool IsPresent => !string.IsNullOrEmpty(ClientId) && !string.IsNullOrEmpty(TenantId) && !string.IsNullOrEmpty(ClientSecret);
     }

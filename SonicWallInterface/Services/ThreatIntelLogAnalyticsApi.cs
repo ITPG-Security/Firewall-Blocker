@@ -74,24 +74,26 @@ namespace SonicWallInterface.Services
                 "ThreatIntelligenceIndicator" +
                 "| where ExpirationDateTime > now() and " +
                 "ConfidenceScore >= " + _tiCfg.Value.MinConfidence + " and " +
-                "NetworkIP matches regex @\"^(?:[1-2]?[0-9]?[0-9]\\.){3}(?:[1-2]?[0-9]?[0-9])$\" and " +
-                "not(NetworkIP matches regex @\"^(?:192\\.168\\.|10\\.|172\\.(?:1[6-9]|2[0-9]|3[0-1])\\.)\") " +
-                "| summarize by NetworkIP";
+                "not(ipv4_is_private( NetworkIP)) " +
+                "| sort by ConfidenceScore desc, TimeGenerated desc " +
+                "| summarize by NetworkIP" +
+                "| take " + (_tiCfg.Value.MaxCount != null ? _tiCfg.Value.MaxCount : 1000).ToString();
         }
 
         private string _getTiQueryWithExclusion()
         {
             if(string.IsNullOrEmpty(_tiCfg.Value.ExclusionListAlias) || string.IsNullOrEmpty(_tiCfg.Value.IPv4CollumName)) throw new NullReferenceException("Invalid TI configuration found.");
             return 
-                "let exclusions = _GetWatchlist(\"" + _tiCfg.Value.ExclusionListAlias + "\")" +
-                "| project " + _tiCfg.Value.IPv4CollumName + ";" +
-                "ThreatIntelligenceIndicator" +
+                "let exclusions = union isfuzzy=true (datatable(IPv4:string)[]), (_GetWatchlist(\"" + _tiCfg.Value.ExclusionListAlias + "\")| project " + _tiCfg.Value.IPv4CollumName + "); " +
+                "ThreatIntelligenceIndicator " +
+                "| summarize arg_max(TimeGenerated, *) by IndicatorId " +
                 "| where ExpirationDateTime > now() and " +
                 "ConfidenceScore >= " + _tiCfg.Value.MinConfidence + " and " +
                 "NetworkIP !in~ (exclusions) and " +
-                "NetworkIP matches regex @\"^(?:[1-2]?[0-9]?[0-9]\\.){3}(?:[1-2]?[0-9]?[0-9])$\" and " +
-                "not(NetworkIP matches regex @\"^(?:192\\.168\\.|10\\.|172\\.(?:1[6-9]|2[0-9]|3[0-1])\\.)\") " +
-                "| summarize by NetworkIP";
+                "not(ipv4_is_private( NetworkIP)) " +
+                "| sort by ConfidenceScore desc, TimeGenerated desc " +
+                "| project NetworkIP " +
+                "| take " + (_tiCfg.Value.MaxCount != null ? _tiCfg.Value.MaxCount : 1000).ToString();
         }
 
         public async Task<List<string>> GetCurrentTIIPs(){
