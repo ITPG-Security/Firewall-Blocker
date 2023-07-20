@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>9a29c872-302c-4fb3-baea-c9b01650ed6e</UserSecretsId>
-    <Version>0.9.1a</Version>
+    <Version>0.9.2</Version>
     <RuntimeIdentifiers>win-x64;linux-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
