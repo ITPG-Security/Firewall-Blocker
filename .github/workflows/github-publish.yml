@@ -9,6 +9,7 @@ on:
     paths:
       - Messaging/**
       - SonicWallInterface/**
+      - .github/workflows/github-publish.yml
 
 jobs:
   publish:
