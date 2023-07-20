@@ -5,10 +5,11 @@ name: Validate build
 
 on:
   pull_request:
-    branches: [ "main", "development" ]
+    branches: [ "main" ]
     paths:
       - Messaging/**
       - SonicWallInterface/**
+      - .github/workflows/github-test-build.yml
 
 jobs:
   test:
