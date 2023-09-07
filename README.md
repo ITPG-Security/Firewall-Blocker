@@ -111,8 +111,7 @@ WantedBy=multi-user.target
     }
 }
 ```
-### Sonicwall configuration [DEPRECATED]
-<b>WARNING: This feature has become deprecated as it seems like it is no longer being supported.</b>
+### Sonicwall configuration
 To see the confiugration for the sonicwall you can look at this link: [SonicOS TI API](https://www.sonicwall.com/support/knowledge-base/how-do-i-setup-and-use-the-threat-api-feature-on-my-firewall/171120113244716/)
 
 ### Kestrel
