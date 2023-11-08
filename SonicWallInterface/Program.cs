@@ -53,18 +53,20 @@ namespace SonicWallInterface
             var serviceBusIConfig = builder.Configuration.GetSection(nameof(ServiceBusConfig));
             var appIConfig = builder.Configuration.GetSection(nameof(AppConfig));
             var tiIConfig = builder.Configuration.GetSection(nameof(ThreatIntelApiConfig));
-            var sonicWallIConfig = builder.Configuration.GetSection(nameof(SonicWallConfig));
+            var firewallIConfig = builder.Configuration.GetSection(nameof(FirewallConfig));
             
             builder.Services.Configure<ServiceBusConfig>(serviceBusIConfig);
-            builder.Services.Configure<SonicWallConfig>(sonicWallIConfig);
+            builder.Services.Configure<FirewallConfig>(firewallIConfig);
             builder.Services.Configure<ThreatIntelApiConfig>(tiIConfig);
             
             builder.Services.AddSingleton<IHttpIPListApi, HttpIPListApi>();
+            
+            
 
-            var sonicWallConfig = sonicWallIConfig.Get<SonicWallConfig>();
-            if (sonicWallIConfig.Exists() && sonicWallConfig.IsPresent)
+            var firewallConfig = firewallIConfig.Get<FirewallConfig>();
+            if (!firewallIConfig.Exists() || !firewallConfig.IsPresent)
             {
-                builder.Services.AddSingleton<IFireWallApi, SonicWallTIApi>();
+                Console.WriteLine($"No FirewallConfig found. Direct firewall communication will not be supported!");
             }
             var tiConfig = tiIConfig.Get<ThreatIntelApiConfig>();
             if (tiIConfig.Exists() && tiConfig.IsPresent && string.IsNullOrEmpty(tiConfig.WorkspaceId))

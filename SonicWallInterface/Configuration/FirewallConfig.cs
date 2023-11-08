@@ -12,6 +12,6 @@ namespace SonicWallInterface.Configuration
         public List<SonicWallConfig> SonicWalls;
 
         [JsonIgnore]
-        public bool IsPresent => SonicWalls != null || SonicWalls.Count > 0;
+        public bool IsPresent => SonicWalls != null && SonicWalls.Count > 0;
     }
 }
