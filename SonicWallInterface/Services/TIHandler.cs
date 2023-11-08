@@ -3,27 +3,37 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using SonicWallInterface.Configuration;
 
 namespace SonicWallInterface.Services
 {
     public class TIHandler : ITIHandler
     {
         private readonly ILogger<TIHandler> _logger;
-        private readonly IFireWallApi _fireWall;
+        private readonly ILoggerFactory _logFactory;
+        private readonly List<IFireWallApi> _fireWalls;
+        private readonly IOptions<FirewallConfig> _fwConf;
         private readonly IThreatIntelApi _threat;
         private readonly IHttpIPListApi _httpIps;
 
-        public TIHandler(ILogger<TIHandler> logger, IFireWallApi fireWall, IThreatIntelApi threat, IHttpIPListApi httpIps)
+        public TIHandler(ILogger<TIHandler> logger, ILoggerFactory logFactory, IThreatIntelApi threat, IHttpIPListApi httpIps, IOptions<FirewallConfig> fwConf)
         {
             _logger = logger;
-            _fireWall = fireWall;
+            _logFactory = logFactory;
+            _fwConf = fwConf;
+            _fireWalls = new List<IFireWallApi>();
+            foreach (var swConf in _fwConf.Value.SonicWalls)
+            {
+                _fireWalls.Add(new SonicWallTIApi(_logFactory.CreateLogger<SonicWallTIApi>(), swConf));
+            }
             _threat = threat;
             _httpIps = httpIps;
         }
-        public TIHandler(ILogger<TIHandler> logger, IThreatIntelApi threat, IHttpIPListApi httpIps)
+        public TIHandler(ILogger<TIHandler> logger, IThreatIntelApi threat, IHttpIPListApi httpIps, List<IFireWallApi> firewalls)
         {
             _logger = logger;
-            _fireWall = null;
+            _fireWalls = firewalls;
             _threat = threat;
             _httpIps = httpIps;
         }
@@ -31,25 +41,34 @@ namespace SonicWallInterface.Services
         public async Task HandleTI()
         {
             _logger.Log(LogLevel.Debug, "Gathering TI from Sentinel");
-            var getTiTask = _threat.GetCurrentTIIPs();
-            var currentIps = _fireWall != null ? await _fireWall.GetIPBlockList() : new List<string>();
-            var tiIps = await getTiTask;
+            var tiIps = await _threat.GetCurrentTIIPs();
             _httpIps.OverwriteIPBlockList(tiIps);
-            if (_fireWall != null)
+            var firewallTasks = new List<Task>();
+            foreach(var firewall in _fireWalls)
             {
-                if (currentIps.Count <= 0)
-                {
-                    _logger.Log(LogLevel.Debug, "Initializing block list.");
-                    await _fireWall.InitiateIPBlockList(tiIps);
-                }
-                else
-                {
-                    _logger.Log(LogLevel.Debug, "BlockList exists. Updating block list.");
-                    var removeIps = currentIps.Where(ip => !tiIps.Contains(ip)).ToList();
-                    var addIps = tiIps.Where(ip => !currentIps.Contains(ip)).ToList();
-                    await _fireWall.RemoveFromIPBlockList(removeIps);
-                    await _fireWall.AddToIPBlockList(addIps);
-                }
+                firewallTasks.Add(HandleFirewall(tiIps, firewall));
+            }
+            while(firewallTasks.Any(f => !f.IsCompleted))
+            {
+                await Task.Delay(100);
+            }
+        }
+
+        private async Task HandleFirewall(List<string> tiIps, IFireWallApi firewall)
+        {
+            var currentIps = await firewall.GetIPBlockList();
+            if (currentIps.Count <= 0)
+            {
+                _logger.Log(LogLevel.Debug, "Initializing block list.");
+                await firewall.InitiateIPBlockList(tiIps);
+            }
+            else
+            {
+                _logger.Log(LogLevel.Debug, "BlockList exists. Updating block list.");
+                var removeIps = currentIps.Where(ip => !tiIps.Contains(ip)).ToList();
+                var addIps = tiIps.Where(ip => !currentIps.Contains(ip)).ToList();
+                await firewall.RemoveFromIPBlockList(removeIps);
+                await firewall.AddToIPBlockList(addIps);
             }
         }
     }

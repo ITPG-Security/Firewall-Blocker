@@ -68,12 +68,17 @@ WantedBy=multi-user.target
             }
         }
     },
-    "SonicWallConfig":
+    "FirewallConfig":
     {
-        "FireWallEndpoint": "https://firewall:8443",
-        "Username": "USERNAME",
-        "Password": "PASSWORD",
-        "ValidateSSL": true
+        "SonicWalls":
+        [
+            {
+                "FireWallEndpoint": "https://firewall:8443",
+                "Username": "USERNAME",
+                "Password": "PASSWORD",
+                "ValidateSSL": true
+            }
+        ]
     },
     "ThreatIntelApiConfig":
     {
@@ -129,5 +134,4 @@ A few things you should know.
 - Docker image
 - Install script
 - Fix Graph API
-- Support multiple SonicWalls
 - Support other Firewalls
