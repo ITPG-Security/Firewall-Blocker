@@ -23,9 +23,12 @@ namespace SonicWallInterface.Services
             _logFactory = logFactory;
             _fwConf = fwConf;
             _fireWalls = new List<IFireWallApi>();
-            foreach (var swConf in _fwConf.Value.SonicWalls)
+            if (_fwConf.Value.SonicWalls != null)
             {
-                _fireWalls.Add(new SonicWallTIApi(_logFactory.CreateLogger<SonicWallTIApi>(), swConf));
+                foreach (var swConf in _fwConf.Value.SonicWalls)
+                {
+                    _fireWalls.Add(new SonicWallTIApi(_logFactory.CreateLogger<SonicWallTIApi>(), swConf));
+                }
             }
             _threat = threat;
             _httpIps = httpIps;
@@ -44,11 +47,11 @@ namespace SonicWallInterface.Services
             var tiIps = await _threat.GetCurrentTIIPs();
             _httpIps.OverwriteIPBlockList(tiIps);
             var firewallTasks = new List<Task>();
-            foreach(var firewall in _fireWalls)
+            foreach (var firewall in _fireWalls)
             {
                 firewallTasks.Add(HandleFirewall(tiIps, firewall));
             }
-            while(firewallTasks.Any(f => !f.IsCompleted))
+            while (firewallTasks.Any(f => !f.IsCompleted))
             {
                 await Task.Delay(100);
             }
