@@ -10,7 +10,7 @@ using FirewallBlocker.Helpers;
 
 namespace FirewallBlocker.Services
 {
-    public class ThreatIntelLogAnalyticsApi : IThreatIntelApi
+    public class ThreatIntelLogAnalyticsApi : IThreatIntelCollector
     {
         private readonly ILogger<ThreatIntelLogAnalyticsApi> _logger;
         private readonly IOptions<ThreatIntelApiConfig> _tiCfg;
@@ -96,13 +96,13 @@ namespace FirewallBlocker.Services
                 "| take " + (_tiCfg.Value.MaxCount != null ? _tiCfg.Value.MaxCount : 1000).ToString();
         }
 
-        public async Task<List<string>> GetCurrentTIIPs(){
+        public IEnumerable<string> GetCurrentTI(){
             string query = (string.IsNullOrEmpty(_tiCfg.Value.ExclusionListAlias) || string.IsNullOrEmpty(_tiCfg.Value.IPv4CollumName)) ? _getTiQuery() : _getTiQueryWithExclusion();
-            var response = await _logClient.QueryWorkspaceAsync(
+            var response = _logClient.QueryWorkspaceAsync(
                 _tiCfg.Value.WorkspaceId,
                 query,
                 QueryTimeRange.All
-            );
+            ).Result;
             if(response == null) return new List<string>();
             if(response.Value.Status != LogsQueryResultStatus.Success){
                 throw new Exception(response.Value.Error.Message);

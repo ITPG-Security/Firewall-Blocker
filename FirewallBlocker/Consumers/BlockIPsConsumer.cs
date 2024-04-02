@@ -11,7 +11,6 @@ namespace FirewallBlocker.Consumers
     {
         private readonly ILogger<BlockIPsConsumer> _logger;
         private readonly ITIHandler _tiHandler;
-        private readonly IThreatIntelApi _threat;
 
         public BlockIPsConsumer(ILogger<BlockIPsConsumer> logger, ITIHandler tiHandler)
         {

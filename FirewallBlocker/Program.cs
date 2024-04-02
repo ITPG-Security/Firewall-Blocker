@@ -52,12 +52,13 @@ namespace FirewallBlocker
             
             var serviceBusIConfig = builder.Configuration.GetSection(nameof(ServiceBusConfig));
             var appIConfig = builder.Configuration.GetSection(nameof(AppConfig));
-            var tiIConfig = builder.Configuration.GetSection(nameof(ThreatIntelApiConfig));
+            var srcIConfig = builder.Configuration.GetSection(nameof(SourceConfig));
             var firewallIConfig = builder.Configuration.GetSection(nameof(FirewallConfig));
             
             builder.Services.Configure<ServiceBusConfig>(serviceBusIConfig);
             builder.Services.Configure<FirewallConfig>(firewallIConfig);
-            builder.Services.Configure<ThreatIntelApiConfig>(tiIConfig);
+
+            
             
             builder.Services.AddSingleton<IHttpIPListApi, HttpIPListApi>();
             
@@ -68,19 +69,37 @@ namespace FirewallBlocker
             {
                 Console.WriteLine($"No FirewallConfig found. Direct firewall communication will not be supported!");
             }
-            var tiConfig = tiIConfig.Get<ThreatIntelApiConfig>();
-            if (tiIConfig.Exists() && tiConfig.IsPresent && string.IsNullOrEmpty(tiConfig.WorkspaceId))
+            var srcConfig = srcIConfig.Get<SourceConfig>();
+            if(srcConfig == null)
             {
-                builder.Services.AddSingleton<IThreatIntelApi, ThreatIntelApi>();
+                throw new Exception("No Source config present!");
             }
-            else if (tiIConfig.Exists() && tiConfig.IsPresent)
+            if(srcConfig.CSVConfig != null && srcConfig.CSVConfig.IsPresent)
             {
-                builder.Services.AddSingleton<IThreatIntelApi, ThreatIntelLogAnalyticsApi>();
+                builder.Services.Configure<CSVConfig>(srcIConfig.GetSection(nameof(CSVConfig)));
+                builder.Services.AddSingleton<IThreatIntelCollector, CSVHandler>();
             }
-            else
+            else if(srcConfig.ThreatIntelApiConfig != null && srcConfig.ThreatIntelApiConfig.IsPresent)
             {
-                throw new Exception("Missing configuration: ThreatIntelApiConfig");
+                builder.Services.Configure<ThreatIntelApiConfig>(srcIConfig.GetSection(nameof(ThreatIntelApiConfig)));
+                var tiConfig = srcConfig.ThreatIntelApiConfig;
+                if (tiConfig.IsPresent && string.IsNullOrEmpty(tiConfig.WorkspaceId))
+                {
+                    builder.Services.AddSingleton<IThreatIntelCollector, ThreatIntelApi>();
+                }
+                else if (tiConfig.IsPresent)
+                {
+                    builder.Services.AddSingleton<IThreatIntelCollector, ThreatIntelLogAnalyticsApi>();
+                }
+                else
+                {
+                    throw new Exception("Missing configuration: ThreatIntelApiConfig");
+                }
             }
+            else{
+                throw new Exception("No valid Source config present!");
+            }
+            
             builder.Services.AddSingleton<ITIHandler, TIHandler>();
             
             var serviceBusConfig = serviceBusIConfig.Get<ServiceBusConfig>();

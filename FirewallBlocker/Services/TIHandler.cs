@@ -14,10 +14,10 @@ namespace FirewallBlocker.Services
         private readonly ILoggerFactory _logFactory;
         private readonly List<IFireWallApi> _fireWalls;
         private readonly IOptions<FirewallConfig> _fwConf;
-        private readonly IThreatIntelApi _threat;
+        private readonly IThreatIntelCollector _threat;
         private readonly IHttpIPListApi _httpIps;
 
-        public TIHandler(ILogger<TIHandler> logger, ILoggerFactory logFactory, IThreatIntelApi threat, IHttpIPListApi httpIps, IOptions<FirewallConfig> fwConf)
+        public TIHandler(ILogger<TIHandler> logger, ILoggerFactory logFactory, IThreatIntelCollector threat, IHttpIPListApi httpIps, IOptions<FirewallConfig> fwConf)
         {
             _logger = logger;
             _logFactory = logFactory;
@@ -33,7 +33,7 @@ namespace FirewallBlocker.Services
             _threat = threat;
             _httpIps = httpIps;
         }
-        public TIHandler(ILogger<TIHandler> logger, IThreatIntelApi threat, IHttpIPListApi httpIps, List<IFireWallApi> firewalls)
+        public TIHandler(ILogger<TIHandler> logger, IThreatIntelCollector threat, IHttpIPListApi httpIps, List<IFireWallApi> firewalls)
         {
             _logger = logger;
             _fireWalls = firewalls;
@@ -44,7 +44,7 @@ namespace FirewallBlocker.Services
         public async Task HandleTI()
         {
             _logger.Log(LogLevel.Debug, "Gathering TI from Sentinel");
-            var tiIps = await _threat.GetCurrentTIIPs();
+            var tiIps = _threat.GetCurrentTI();
             _httpIps.OverwriteIPBlockList(tiIps);
             var firewallTasks = new List<Task>();
             foreach (var firewall in _fireWalls)
@@ -57,13 +57,13 @@ namespace FirewallBlocker.Services
             }
         }
 
-        private async Task HandleFirewall(List<string> tiIps, IFireWallApi firewall)
+        private async Task HandleFirewall(IEnumerable<string> tiIps, IFireWallApi firewall)
         {
             var currentIps = await firewall.GetIPBlockList();
             if (currentIps.Count <= 0)
             {
                 _logger.Log(LogLevel.Debug, "Initializing block list.");
-                await firewall.InitiateIPBlockList(tiIps);
+                await firewall.InitiateIPBlockList(tiIps.ToList());
             }
             else
             {

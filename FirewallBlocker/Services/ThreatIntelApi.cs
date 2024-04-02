@@ -8,7 +8,7 @@ using FirewallBlocker.Helpers;
 
 namespace FirewallBlocker.Services
 {
-    public class ThreatIntelApi : IThreatIntelApi
+    public class ThreatIntelApi : IThreatIntelCollector
     {
         private readonly ILogger<ThreatIntelApi> _logger;
         private readonly IOptions<ThreatIntelApiConfig> _tiCfg;
@@ -33,16 +33,20 @@ namespace FirewallBlocker.Services
             _graphClient = new GraphServiceClient(new ClientSecretCredential(_tiCfg.Value.TenantId, _tiCfg.Value.ClientId, _tiCfg.Value.ClientSecret, options), scopes);
         }
 
-        public async Task<List<string>> GetCurrentTIIPs(){
+        public IEnumerable<string> GetCurrentTI(){
             try{
-                var tmp = await _graphClient.Security.TiIndicators.GetAsync(requestConfiguration => {
+                var tmp = _graphClient.Security.TiIndicators.GetAsync(requestConfiguration => {
                     requestConfiguration.QueryParameters.Filter = $"expirationDateTime ge {DateTime.UtcNow} and " +
                     $"confidence ge {(_tiCfg.Value.MinConfidence != null ? _tiCfg.Value.MinConfidence : 50)}";
                     requestConfiguration.QueryParameters.Select = new string[]{
                         "networkIPv4"
                     };
-                });
-                return tmp.Value.Select(ti => ti.NetworkIPv4).ToList();
+                }).Result;
+                if(tmp == null || tmp.Value == null)
+                {
+                    return new List<string>();
+                }
+                return tmp.Value.Where(ti => !string.IsNullOrEmpty(ti.NetworkIPv4)).Select(ti => ti.NetworkIPv4);
             }
             catch(Exception ex){
                 _logger.Log(LogLevel.Error, Events.Error, "Request failed: {0}", ex.Message);

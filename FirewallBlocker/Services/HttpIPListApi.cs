@@ -52,7 +52,7 @@ namespace FirewallBlocker.Services
             }
         }
 
-        public void OverwriteIPBlockList(List<string> ips)
+        public void OverwriteIPBlockList(IEnumerable<string> ips)
         {
             try
             {

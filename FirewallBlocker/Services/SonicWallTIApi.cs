@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using Moq.Protected;
 using Moq;
+using System.Net.Security;
 
 namespace FirewallBlocker.Services
 {
@@ -22,10 +23,17 @@ namespace FirewallBlocker.Services
         {
             _logger = logger;
             _swCfg = swCfg;
-            _handler = new HttpClientHandler();
-            _handler.ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => 
-            {
-                return !_swCfg.ValidateSSL;
+            _handler = new HttpClientHandler{
+                ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => 
+                {
+                    if(!_swCfg.ValidateSSL) return true;
+                    _logger.LogDebug($"Start SSL Connection check.");
+                    foreach (var c in chain.ChainStatus)
+                    {
+                        _logger.LogDebug($"ChainStatus={c.Status}");
+                    }
+                    return SslPolicyErrors.None == sslPolicyErrors;
+                }
             };
             _isMock = false;
             _mockIps = new List<string>();

@@ -33,7 +33,7 @@ namespace FirewallBlocker.Tests
                 ValidateSSL = false
             }, new List<string>());
             var tiLogger = _logFactory.CreateLogger<ThreatIntelLogAnalyticsApi>();
-            var tiMock = (IThreatIntelApi) new ThreatIntelLogAnalyticsApi(tiLogger, Options.Create<ThreatIntelApiConfig>(new ThreatIntelApiConfig{
+            var tiMock = (IThreatIntelCollector) new ThreatIntelLogAnalyticsApi(tiLogger, Options.Create<ThreatIntelApiConfig>(new ThreatIntelApiConfig{
                 ClientId = "ClientId",
                 TenantId = "TenantId",
                 ClientSecret = "ClientSecret",
@@ -68,7 +68,7 @@ namespace FirewallBlocker.Tests
                 ValidateSSL = false
             }, oldIps);
             var tiLogger = _logFactory.CreateLogger<ThreatIntelLogAnalyticsApi>();
-            var tiMock = (IThreatIntelApi) new ThreatIntelLogAnalyticsApi(tiLogger, Options.Create<ThreatIntelApiConfig>(new ThreatIntelApiConfig{
+            var tiMock = (IThreatIntelCollector) new ThreatIntelLogAnalyticsApi(tiLogger, Options.Create<ThreatIntelApiConfig>(new ThreatIntelApiConfig{
                 ClientId = "ClientId",
                 TenantId = "TenantId",
                 ClientSecret = "ClientSecret",
@@ -105,7 +105,7 @@ namespace FirewallBlocker.Tests
                 ValidateSSL = false
             }, new List<string>());
             var tiLogger = _logFactory.CreateLogger<ThreatIntelLogAnalyticsApi>();
-            var tiMock = (IThreatIntelApi) new ThreatIntelLogAnalyticsApi(tiLogger, Options.Create<ThreatIntelApiConfig>(new ThreatIntelApiConfig{
+            var tiMock = (IThreatIntelCollector) new ThreatIntelLogAnalyticsApi(tiLogger, Options.Create<ThreatIntelApiConfig>(new ThreatIntelApiConfig{
                 ClientId = "ClientId",
                 TenantId = "TenantId",
                 ClientSecret = "ClientSecret",

@@ -10,6 +10,6 @@ namespace FirewallBlocker.Services
         
         public string GetIPBlockList();
 
-        public void OverwriteIPBlockList(List<string> ips);
+        public void OverwriteIPBlockList(IEnumerable<string> ips);
     }
 }
