@@ -8,7 +8,7 @@ on:
     branches: [ "main" ]
     paths:
       - Messaging/**
-      - SonicWallInterface/**
+      - FirewallBlocker/**
       - .github/workflows/github-publish.yml
 
 jobs:
@@ -25,18 +25,18 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Publish Windows
-      run: dotnet publish SonicWallInterface --no-restore -p:DebugType=None -p:DebugSymbols=false -p:PublishSingleFile=true --self-contained true -c Release -o ./Builds/SonicWallInterface/Windows --os win
+      run: dotnet publish FirewallBlocker --no-restore -p:DebugType=None -p:DebugSymbols=false -p:PublishSingleFile=true --self-contained true -c Release -o ./Builds/FirewallBlocker/Windows --os win
     - name: Publish Windows lite
-      run: dotnet publish SonicWallInterface --no-restore -p:DebugType=None -p:DebugSymbols=false -p:PublishSingleFile=true --self-contained false -c Release -o ./Builds/SonicWallInterface/Windows_lite --os win
+      run: dotnet publish FirewallBlocker --no-restore -p:DebugType=None -p:DebugSymbols=false -p:PublishSingleFile=true --self-contained false -c Release -o ./Builds/FirewallBlocker/Windows_lite --os win
     - name: Publish Linux
-      run: dotnet publish SonicWallInterface --no-restore -p:DebugType=None -p:DebugSymbols=false -p:PublishSingleFile=true --self-contained true -c Release -o ./Builds/SonicWallInterface/Linux --os linux
+      run: dotnet publish FirewallBlocker --no-restore -p:DebugType=None -p:DebugSymbols=false -p:PublishSingleFile=true --self-contained true -c Release -o ./Builds/FirewallBlocker/Linux --os linux
     - name: Publish Linux lite
-      run: dotnet publish SonicWallInterface --no-restore -p:DebugType=None -p:DebugSymbols=false -p:PublishSingleFile=true --self-contained false -c Release -o ./Builds/SonicWallInterface/Linux_lite --os linux
+      run: dotnet publish FirewallBlocker --no-restore -p:DebugType=None -p:DebugSymbols=false -p:PublishSingleFile=true --self-contained false -c Release -o ./Builds/FirewallBlocker/Linux_lite --os linux
     - name: Get version
       id: get_version
       uses: mavrosxristoforos/get-xml-info@1.0
       with: 
-        xml-file: './SonicWallInterface/SonicWallInterface.csproj'
+        xml-file: './FirewallBlocker/FirewallBlocker.csproj'
         xpath: '//Project//PropertyGroup//Version'
     - name: Zip windows
       id: zip_windows
@@ -44,7 +44,7 @@ jobs:
       with:
         type: 'zip'
         filename: 'windows-v${{steps.get_version.outputs.info}}.zip'
-        directory: './Builds/SonicWallInterface/Windows'
+        directory: './Builds/FirewallBlocker/Windows'
         path: './*'
     - name: Zip windows lite
       id: zip_windows_lite
@@ -52,7 +52,7 @@ jobs:
       with:
         type: 'zip'
         filename: 'windows-lite-v${{steps.get_version.outputs.info}}.zip'
-        directory: './Builds/SonicWallInterface/Windows_lite'
+        directory: './Builds/FirewallBlocker/Windows_lite'
         path: './*'
     - name: Tar linux
       id: tar_linux
@@ -60,7 +60,7 @@ jobs:
       with:
         type: 'tar'
         filename: 'linux-v${{steps.get_version.outputs.info}}.tar.gz'
-        directory: './Builds/SonicWallInterface/Linux'
+        directory: './Builds/FirewallBlocker/Linux'
         path: './*'
     - name: Tar linux lite
       id: tar_linux_lite
@@ -68,7 +68,7 @@ jobs:
       with:
         type: 'tar'
         filename: 'linux-lite-v${{steps.get_version.outputs.info}}.tar.gz'
-        directory: './Builds/SonicWallInterface/Linux_lite'
+        directory: './Builds/FirewallBlocker/Linux_lite'
         path: './*'        
     - name: release
       uses: actions/create-release@v1
@@ -87,7 +87,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./Builds/SonicWallInterface/Windows/windows-v${{steps.get_version.outputs.info}}.zip
+        asset_path: ./Builds/FirewallBlocker/Windows/windows-v${{steps.get_version.outputs.info}}.zip
         asset_name: windows-v${{steps.get_version.outputs.info}}.zip
         asset_content_type: application/zip
     - name: Upload content windows lite
@@ -97,7 +97,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./Builds/SonicWallInterface/Windows_lite/windows-lite-v${{steps.get_version.outputs.info}}.zip
+        asset_path: ./Builds/FirewallBlocker/Windows_lite/windows-lite-v${{steps.get_version.outputs.info}}.zip
         asset_name: windows-lite-v${{steps.get_version.outputs.info}}.zip
         asset_content_type: application/zip
     - name: Upload content linux
@@ -107,7 +107,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./Builds/SonicWallInterface/Linux/linux-v${{steps.get_version.outputs.info}}.tar.gz
+        asset_path: ./Builds/FirewallBlocker/Linux/linux-v${{steps.get_version.outputs.info}}.tar.gz
         asset_name: linux-v${{steps.get_version.outputs.info}}.tar.gz
         asset_content_type: application/x-tar
     - name: Upload content linux
@@ -117,7 +117,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./Builds/SonicWallInterface/Linux_lite/linux-lite-v${{steps.get_version.outputs.info}}.tar.gz
+        asset_path: ./Builds/FirewallBlocker/Linux_lite/linux-lite-v${{steps.get_version.outputs.info}}.tar.gz
         asset_name: linux-lite-v${{steps.get_version.outputs.info}}.tar.gz
         asset_content_type: application/x-tar
 
