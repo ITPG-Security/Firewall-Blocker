@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SonicWallInterface.Configuration;
-using SonicWallInterface.Services;
+using FirewallBlocker.Configuration;
+using FirewallBlocker.Services;
 using Xunit;
 
-namespace SonicWallInterface.Tests
+namespace FirewallBlocker.Tests
 {
     [Collection("Sequential")]
     public class TIBlockTests

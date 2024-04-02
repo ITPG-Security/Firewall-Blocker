@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <LangVersion>9.0</LangVersion>
     <UserSecretsId>9a29c872-302c-4fb3-baea-c9b01650ed6e</UserSecretsId>
     <Version>1.0</Version>
@@ -24,6 +24,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Messaging\Messaging.csproj" />
-    <ProjectReference Include="..\SonicWallInterface\SonicWallInterface.csproj" />
+    <ProjectReference Include="..\FirewallBlocker\FirewallBlocker.csproj" />
   </ItemGroup>
 </Project>

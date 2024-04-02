@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Messaging.Contracts;
-using SonicWallInterface.Configuration;
+using FirewallBlocker.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using WorkerApp.Services;
 

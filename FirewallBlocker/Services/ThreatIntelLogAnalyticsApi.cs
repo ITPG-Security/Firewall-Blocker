@@ -2,13 +2,13 @@ using Azure.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Azure.Monitor.Query;
-using SonicWallInterface.Configuration;
+using FirewallBlocker.Configuration;
 using Azure.Monitor.Query.Models;
 using Moq;
 using Azure;
-using SonicWallInterface.Helpers;
+using FirewallBlocker.Helpers;
 
-namespace SonicWallInterface.Services
+namespace FirewallBlocker.Services
 {
     public class ThreatIntelLogAnalyticsApi : IThreatIntelApi
     {

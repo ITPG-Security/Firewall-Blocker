@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace SonicWallInterface.Helpers
+namespace FirewallBlocker.Helpers
 {
     public static class Events
     {

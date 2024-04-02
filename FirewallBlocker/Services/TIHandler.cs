@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SonicWallInterface.Configuration;
+using FirewallBlocker.Configuration;
 
-namespace SonicWallInterface.Services
+namespace FirewallBlocker.Services
 {
     public class TIHandler : ITIHandler
     {

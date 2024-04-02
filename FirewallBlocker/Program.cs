@@ -3,15 +3,15 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Configuration;
-using SonicWallInterface.Configuration;
-using SonicWallInterface.Consumers;
-using SonicWallInterface.Services;
+using FirewallBlocker.Configuration;
+using FirewallBlocker.Consumers;
+using FirewallBlocker.Services;
 using Messaging.Contracts;
 using System.Reflection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.EventLog;
 
-namespace SonicWallInterface
+namespace FirewallBlocker
 {
     public class Program
     {

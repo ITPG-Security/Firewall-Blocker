@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SonicWallInterface.Helpers
+namespace FirewallBlocker.Helpers
 {
     public static class StringHelper
     {

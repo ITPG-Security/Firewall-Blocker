@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.32804.182
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonicWallInterface", "SonicWallInterface\SonicWallInterface.csproj", "{FD2633E9-8B61-4E0C-AB83-E092A5490B05}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FirewallBlocker", "FirewallBlocker\FirewallBlocker.csproj", "{FD2633E9-8B61-4E0C-AB83-E092A5490B05}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messaging", "Messaging\Messaging.csproj", "{C42E33EA-903F-4B2E-AE8C-32991379701D}"
 EndProject
@@ -12,7 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonicWallInterface.Tests", "SonicWallInterface.Tests\SonicWallInterface.Tests.csproj", "{C246E55F-1455-4350-8AD7-6A77EB85771D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FirewallBlocker.Tests", "FirewallBlocker.Tests\FirewallBlocker.Tests.csproj", "{C246E55F-1455-4350-8AD7-6A77EB85771D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkerApp", "WorkerApp\WorkerApp.csproj", "{A9AD9076-3329-4A8F-9342-6BDD8F57FD77}"
 EndProject

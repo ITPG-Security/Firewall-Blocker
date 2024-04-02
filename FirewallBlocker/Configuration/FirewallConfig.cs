@@ -4,7 +4,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 
-namespace SonicWallInterface.Configuration
+namespace FirewallBlocker.Configuration
 {
     public class FirewallConfig : IIsPresent
     {

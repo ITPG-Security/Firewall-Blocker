@@ -1,11 +1,11 @@
 ﻿using MassTransit;
 using Messaging.Contracts;
 using Microsoft.Extensions.Logging;
-using SonicWallInterface.Exceptions;
-using SonicWallInterface.Helpers;
-using SonicWallInterface.Services;
+using FirewallBlocker.Exceptions;
+using FirewallBlocker.Helpers;
+using FirewallBlocker.Services;
 
-namespace SonicWallInterface.Consumers
+namespace FirewallBlocker.Consumers
 {
     public class BlockIPsConsumer : IConsumer<BlockIPs>
     {

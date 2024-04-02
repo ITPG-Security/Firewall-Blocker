@@ -2,11 +2,11 @@ using Azure.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Graph.Beta;
-using SonicWallInterface.Configuration;
+using FirewallBlocker.Configuration;
 using Microsoft.Graph.Beta.Security.TiIndicators;
-using SonicWallInterface.Helpers;
+using FirewallBlocker.Helpers;
 
-namespace SonicWallInterface.Services
+namespace FirewallBlocker.Services
 {
     public class ThreatIntelApi : IThreatIntelApi
     {

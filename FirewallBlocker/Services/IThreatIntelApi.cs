@@ -1,4 +1,4 @@
-namespace SonicWallInterface.Services
+namespace FirewallBlocker.Services
 {
     public interface IThreatIntelApi
     {

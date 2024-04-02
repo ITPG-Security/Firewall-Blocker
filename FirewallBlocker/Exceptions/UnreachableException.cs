@@ -1,4 +1,4 @@
-namespace SonicWallInterface.Exceptions
+namespace FirewallBlocker.Exceptions
 {
     public class UnreachableException : Exception
     {

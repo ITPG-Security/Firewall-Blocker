@@ -1,14 +1,14 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SonicWallInterface.Configuration;
-using SonicWallInterface.Exceptions;
-using SonicWallInterface.Helpers;
+using FirewallBlocker.Configuration;
+using FirewallBlocker.Exceptions;
+using FirewallBlocker.Helpers;
 using System.Net;
 using System.Net.Http.Headers;
 using Moq.Protected;
 using Moq;
 
-namespace SonicWallInterface.Services
+namespace FirewallBlocker.Services
 {
     public class SonicWallTIApi : IFireWallApi
     {
