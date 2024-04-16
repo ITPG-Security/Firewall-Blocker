@@ -56,13 +56,9 @@ namespace FirewallBlocker
             var firewallIConfig = builder.Configuration.GetSection(nameof(FirewallConfig));
             
             builder.Services.Configure<ServiceBusConfig>(serviceBusIConfig);
-            builder.Services.Configure<FirewallConfig>(firewallIConfig);
-
-            
+            builder.Services.Configure<FirewallConfig>(firewallIConfig);            
             
             builder.Services.AddSingleton<IHttpIPListApi, HttpIPListApi>();
-            
-            
 
             var firewallConfig = firewallIConfig.Get<FirewallConfig>();
             if (!firewallIConfig.Exists() || !firewallConfig.IsPresent)
