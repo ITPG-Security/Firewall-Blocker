@@ -41,6 +41,7 @@ User=USER_ID
 Group=GROUP_ID
 ExecStart=/Location/Of/Executable/FirewallBlocker
 Type=notify
+AmbientCapabilities=CAP_NET_BIND_SERVICE
 
 [Install]
 WantedBy=multi-user.target
