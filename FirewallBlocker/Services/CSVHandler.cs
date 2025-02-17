@@ -83,13 +83,13 @@ namespace FirewallBlocker.Services
                     return tiList
                         .OrderBy(s => s.IP)
                         .ThenByDescending(s => s.Score)
-                        .ThenBy(s => s.DateTime)
+                        .ThenByDescending(s => s.DateTime)
                         .Take(_csvCfg.Value.MaxCount)
                         .Select(i => i.IP);
                 case "IP|TIME|SCORE":
                     return tiList
                         .OrderBy(s => s.IP)
-                        .ThenBy(s => s.DateTime)
+                        .ThenByDescending(s => s.DateTime)
                         .ThenByDescending(s => s.Score)
                         .Take(_csvCfg.Value.MaxCount)
                         .Select(i => i.IP);
@@ -97,26 +97,26 @@ namespace FirewallBlocker.Services
                     return tiList
                         .OrderByDescending(s => s.Score)
                         .ThenBy(s => s.IP)
-                        .ThenBy(s => s.DateTime)
+                        .ThenByDescending(s => s.DateTime)
                         .Take(_csvCfg.Value.MaxCount)
                         .Select(i => i.IP);
                 case "SCORE|TIME|IP":
                     return tiList
                         .OrderByDescending(s => s.Score)
-                        .ThenBy(s => s.DateTime)
+                        .ThenByDescending(s => s.DateTime)
                         .ThenBy(s => s.IP)
                         .Take(_csvCfg.Value.MaxCount)
                         .Select(i => i.IP);
                 case "TIME|IP|SCORE":
                     return tiList
-                        .OrderBy(s => s.DateTime)
+                        .OrderByDescending(s => s.DateTime)
                         .ThenBy(s => s.IP)
                         .ThenByDescending(s => s.Score)
                         .Take(_csvCfg.Value.MaxCount)
                         .Select(i => i.IP);
                 case "TIME|SCORE|IP":
                     return tiList
-                        .OrderBy(s => s.DateTime)
+                        .OrderByDescending(s => s.DateTime)
                         .ThenByDescending(s => s.Score)
                         .ThenBy(s => s.IP)
                         .Take(_csvCfg.Value.MaxCount)
@@ -130,7 +130,7 @@ namespace FirewallBlocker.Services
                 case "IP|TIME":
                     return tiList
                         .OrderBy(s => s.IP)
-                        .ThenBy(s => s.DateTime)
+                        .ThenByDescending(s => s.DateTime)
                         .Take(_csvCfg.Value.MaxCount)
                         .Select(i => i.IP);
                 case "SCORE|IP":
@@ -142,18 +142,18 @@ namespace FirewallBlocker.Services
                 case "SCORE|TIME":
                     return tiList
                         .OrderByDescending(s => s.Score)
-                        .ThenBy(s => s.DateTime)
+                        .ThenByDescending(s => s.DateTime)
                         .Take(_csvCfg.Value.MaxCount)
                         .Select(i => i.IP);
                 case "TIME|IP":
                     return tiList
-                        .OrderBy(s => s.DateTime)
+                        .OrderByDescending(s => s.DateTime)
                         .ThenBy(s => s.IP)
                         .Take(_csvCfg.Value.MaxCount)
                         .Select(i => i.IP);
                 case "TIME|SCORE":
                     return tiList
-                        .OrderBy(s => s.DateTime)
+                        .OrderByDescending(s => s.DateTime)
                         .ThenByDescending(s => s.Score)
                         .Take(_csvCfg.Value.MaxCount)
                         .Select(i => i.IP);
@@ -169,7 +169,7 @@ namespace FirewallBlocker.Services
                         .Select(i => i.IP);
                 case "TIME":
                     return tiList
-                        .OrderBy(s => s.DateTime)
+                        .OrderByDescending(s => s.DateTime)
                         .Take(_csvCfg.Value.MaxCount)
                         .Select(i => i.IP);
             }
